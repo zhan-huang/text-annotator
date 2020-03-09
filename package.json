@@ -1,0 +1,82 @@
+{
+  "name": "text-highlight",
+  "version": "1.0.0",
+  "description": "A powerful JavaScript library for searching for and highlighting plain text in the HTML",
+  "main": "public/js/text-highlight.min.js",
+  "scripts": {
+    "lint": "./node_modules/.bin/eslint src/** test/** --fix",
+    "lint:nofix": "./node_modules/.bin/eslint src/** test/** --max-warnings 0",
+    "build": "webpack --config webpack.config.js",
+    "test": "jest",
+    "sync": "node sync.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://gitlab.ebi.ac.uk/literature-services/development/text-highlight.git"
+  },
+  "author": "Zhan Huang",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://gitlab.ebi.ac.uk/literature-services/development/text-highlight/issues"
+  },
+  "homepage": "https://gitlab.ebi.ac.uk/literature-services/development/text-highlight",
+  "devDependencies": {
+    "@babel/core": "^7.4.3",
+    "@babel/preset-env": "^7.4.3",
+    "babel-jest": "^24.7.1",
+    "dotenv": "^8.0.0",
+    "eslint": "^5.15.3",
+    "eslint-config-prettier": "^4.3.0",
+    "eslint-plugin-jest": "^22.4.1",
+    "eslint-plugin-prettier": "^3.1.0",
+    "jest": "^24.5.0",
+    "pre-commit": "^1.2.2",
+    "prettier": "1.18.2",
+    "sync-directory": "^2.0.8",
+    "webpack": "^4.29.6",
+    "webpack-cli": "^3.3.0"
+  },
+  "babel": {
+    "presets": [
+      [
+        "@babel/preset-env",
+        {
+          "targets": {
+            "node": "current"
+          }
+        }
+      ]
+    ]
+  },
+  "eslintConfig": {
+    "env": {
+      "browser": true,
+      "commonjs": true,
+      "es6": true
+    },
+    "extends": [
+      "eslint:recommended",
+      "plugin:jest/recommended",
+      "plugin:prettier/recommended"
+    ],
+    "globals": {
+      "Atomics": "readonly",
+      "SharedArrayBuffer": "readonly"
+    },
+    "parserOptions": {
+      "ecmaVersion": 2018,
+      "sourceType": "module"
+    },
+    "plugins": [
+      "prettier"
+    ]
+  },
+  "prettier": {
+    "semi": false,
+    "singleQuote": true
+  },
+  "pre-commit": [
+    "lint:nofix",
+    "test"
+  ]
+}

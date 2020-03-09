@@ -1,0 +1,91 @@
+<html>
+  <head>
+    <script src="js/text-highlight.min.js"></script>
+  </head>
+  <body>
+    <h2>Displayed content:</h2>
+    <p id="content">"I am <b><i>Zhan Huang</i></b>, a <b>frontend developer</b> in EMBL-EBI. I like <b>food</b> and <b>sports</b>. My favourite food is <b>udon&nbsp;noodles</b> and my favourite sports are <b>badminton</b> and <b>football</b>. Let us be friends!" - Zhan Huang</p>
+    <h2>HTML string:</h2>
+    <p>"I am &lt;b>&lt;i>Zhan Huang&lt;/i>&lt;/b>, a &lt;b>frontend developer&lt;/b> in EMBL-EBI. I like &lt;b>food&lt;/b> and &lt;b>sports&lt;/b>. My favourite food is &lt;b>udon&amp;nbsp;noodles&lt;/b> and my favourite sports are &lt;b>badminton&lt;/b> and &lt;b>football&lt;/b>. Let us be friends!" - Zhan Huang</p>
+    <h2>Logs:</h2>
+    <ul id="logs"></ul>
+    <script>
+      var containerObj = {containerId: 'content', isHTML: true}
+      var highlighter = new Highlighter(containerObj)
+
+      // highlighted by direct search
+      var str = 'I'
+      var highlightIndex = highlighter.search(str)
+      if (highlightIndex !== -1) {
+        highlighter.highlight(highlightIndex, containerObj)
+        document.getElementById('logs').innerHTML += '<li>"' + str + '" is highlighted by direct search.</li>'
+      }
+
+      // highlighted by direct search all
+      var str = 'Zhan Huang'
+      var highlightIndexes = highlighter.searchAll(str)
+      if (highlightIndexes.length) {
+        highlighter.highlightAll(highlightIndexes, containerObj)
+        document.getElementById('logs').innerHTML += '<li>"' + str + '" is highlighted by direct search all.</li>'
+      }
+
+      // highlighted by token-based fuzzy search
+      var str = 'frontend developer'
+      var prefix = 'a '
+      var postfix = ' in EMBLEBI'
+      highlightIndex = highlighter.search(str, {prefix: prefix, postfix: postfix, fuzzySearchOptions: {}})
+      if (highlightIndex !== -1) {
+        highlighter.highlight(highlightIndex, containerObj)
+        document.getElementById('logs').innerHTML += '<li>"' + str + '" with prefix "' + prefix + '" and postfix "' + postfix + '" is highlighted by token-based fuzzy search.</li>'
+      }
+
+      // highlighted by sentence-based fuzzy search
+      var str = 'I like fool and sport'
+      highlightIndex = highlighter.search(str, {fuzzySearchOptions: {}})
+      if (highlightIndex !== -1) {
+        highlighter.highlight(highlightIndex, containerObj)
+        document.getElementById('logs').innerHTML += '<li>"' + str + '" is highlighted by sentence-based fuzzy search.</li>'
+      }
+
+      // highlighted by eager search
+      var str = 'udon noodles'
+      highlightIndex = highlighter.search(str, {eagerSearchOptions: containerObj})
+      if (highlightIndex !== -1) {
+        highlighter.highlight(highlightIndex, containerObj)
+        document.getElementById('logs').innerHTML += '<li>"' + str + '" is highlighted by eager search.</li>'
+      }
+
+      // return the highlight content first and then update dom
+      var str = 'badminton'
+      highlightIndex = highlighter.search(str)
+      if (highlightIndex !== -1) {
+        var content = highlighter.highlight(highlightIndex, {content: document.getElementById('content').innerHTML})
+        document.getElementById('content').innerHTML = content
+        document.getElementById('logs').innerHTML += '<li>"' + str + '" is highlighted by returning the new content.</li>'
+      }
+
+      // combine search and highlight
+      var str = 'football'
+      var result = highlighter.searchAndHighlight(str, {highlightOptions: containerObj})
+      document.getElementById('logs').innerHTML += '<li>"' + str + '" is highlighted by searchAndHighlight.</li>'
+
+      // search and highlight all here...
+
+      var str = 'friends'
+      var result = highlighter.searchAndHighlight(str, {highlightOptions: containerObj})
+      // remove the last highlight in 2 seconds
+      setTimeout(function() {
+        highlighter.unhighlight(result.highlightIndex, containerObj)
+        // highlighter.unhighlight(result.highlightIndex, {containerId: 'content', byStringOperation: true})
+        document.getElementById('logs').innerHTML += '<li>"' + str + '" was unhighlighted.</li>'
+      }, 2000)
+
+      //unhighlight all here...
+    </script>
+    <style>
+      .highlight {
+        background-color: rgba(248, 231, 28, 0.4);
+      }
+    </style>
+  </body>
+</html>
