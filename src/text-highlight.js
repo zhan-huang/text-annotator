@@ -47,10 +47,8 @@ class Highlighter {
     const directSearchOptions = options.directSearchOptions
     const fuzzySearchOptions = options.fuzzySearchOptions
     const eagerSearchOptions = options.eagerSearchOptions
+    // trim by default
     const trim = options.trim === undefined || options.trim
-    const lastHighlightIndex = options.lastHighlightIndex
-
-    let highlightIndex = -1
 
     if (trim) {
       const trimmingRes = this.trim(prefix, str, postfix)
@@ -59,13 +57,14 @@ class Highlighter {
       postfix = trimmingRes.postfix
     }
 
+    let highlightIndex = -1
+
     // direct search will always be performed
     highlightIndex = this.directSearch(
       prefix,
       str,
       postfix,
-      directSearchOptions,
-      lastHighlightIndex
+      directSearchOptions
     )
     if (highlightIndex !== -1) {
       return highlightIndex
@@ -106,7 +105,15 @@ class Highlighter {
     const continueSearch = (str, options, lastHighlightIndex) => {
       const highlightIndex = this.search(
         str,
-        Object.assign({ lastHighlightIndex }, options)
+        Object.assign(
+          {
+            directSearchOptions: Object.assign(
+              { lastHighlightIndex },
+              options.directSearchOptions
+            )
+          },
+          options
+        )
       )
       if (highlightIndex !== -1) {
         highlightIndexes.push(highlightIndex)
@@ -266,17 +273,12 @@ class Highlighter {
     }
   }
 
-  directSearch(
-    prefix,
-    str,
-    postfix,
-    directSearchOptions = {},
-    lastHighlightIndex
-  ) {
+  directSearch(prefix, str, postfix, directSearchOptions = {}) {
     // by default case sensitive
     const caseSensitive =
       directSearchOptions.caseSensitive === undefined ||
       directSearchOptions.caseSensitive
+    const lastHighlightIndex = directSearchOptions.lastHighlightIndex
 
     let strWithFixes = prefix + str + postfix
     let text = this.isHTML ? this.stripedHTML : this.originalContent
@@ -287,7 +289,7 @@ class Highlighter {
 
     let offset = 0
     if (lastHighlightIndex !== undefined) {
-      offset = this.highlights[lastHighlightIndex].loc[1]
+      offset = this.highlights[lastHighlightIndex].loc[1] + 1
     }
 
     let highlightIndex = -1
