@@ -1,8 +1,8 @@
 {
-  "name": "text-highlight",
+  "name": "text-annotator",
   "version": "1.0.0",
-  "description": "A powerful JavaScript library for searching for and highlighting plain text in the HTML",
-  "main": "public/js/text-highlight.min.js",
+  "description": "A library for locating and annotating plain text in HTML",
+  "main": "public/js/text-annotator.min.js",
   "scripts": {
     "lint": "./node_modules/.bin/eslint src/** test/** --fix",
     "lint:nofix": "./node_modules/.bin/eslint src/** test/** --max-warnings 0",
@@ -12,14 +12,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://gitlab.ebi.ac.uk/literature-services/development/text-highlight.git"
+    "url": "git+https://gitlab.ebi.ac.uk/literature-services/development/text-annotator.git"
   },
   "author": "Zhan Huang",
   "license": "MIT",
   "bugs": {
-    "url": "https://gitlab.ebi.ac.uk/literature-services/development/text-highlight/issues"
+    "url": "https://gitlab.ebi.ac.uk/literature-services/development/text-annotator/issues"
   },
-  "homepage": "https://gitlab.ebi.ac.uk/literature-services/development/text-highlight",
+  "homepage": "https://gitlab.ebi.ac.uk/literature-services/development/text-annotator",
   "devDependencies": {
     "@babel/core": "^7.4.3",
     "@babel/preset-env": "^7.4.3",

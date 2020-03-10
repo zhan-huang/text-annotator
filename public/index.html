@@ -1,6 +1,6 @@
 <html>
   <head>
-    <script src="js/text-highlight.min.js"></script>
+    <script src="js/text-annotator.min.js"></script>
   </head>
   <body>
     <h2>Displayed content:</h2>
@@ -11,21 +11,21 @@
     <ul id="logs"></ul>
     <script>
       var containerObj = {containerId: 'content', isHTML: true}
-      var highlighter = new Highlighter(containerObj)
+      var annotator = new TextAnnotator(containerObj)
 
       // highlighted by direct search
       var str = 'I'
-      var highlightIndex = highlighter.search(str)
+      var highlightIndex = annotator.search(str)
       if (highlightIndex !== -1) {
-        highlighter.highlight(highlightIndex, containerObj)
+        annotator.highlight(highlightIndex, containerObj)
         document.getElementById('logs').innerHTML += '<li>"' + str + '" is highlighted by direct search.</li>'
       }
 
       // highlighted by direct search all
       var str = 'Zhan Huang'
-      var highlightIndexes = highlighter.searchAll(str)
+      var highlightIndexes = annotator.searchAll(str)
       if (highlightIndexes.length) {
-        highlighter.highlightAll(highlightIndexes, containerObj)
+        annotator.highlightAll(highlightIndexes, containerObj)
         document.getElementById('logs').innerHTML += '<li>"' + str + '" is highlighted by direct search all.</li>'
       }
 
@@ -33,48 +33,48 @@
       var str = 'frontend developer'
       var prefix = 'a '
       var postfix = ' in EMBLEBI'
-      highlightIndex = highlighter.search(str, {prefix: prefix, postfix: postfix, fuzzySearchOptions: {}})
+      highlightIndex = annotator.search(str, {prefix: prefix, postfix: postfix, fuzzySearchOptions: {}})
       if (highlightIndex !== -1) {
-        highlighter.highlight(highlightIndex, containerObj)
+        annotator.highlight(highlightIndex, containerObj)
         document.getElementById('logs').innerHTML += '<li>"' + str + '" with prefix "' + prefix + '" and postfix "' + postfix + '" is highlighted by token-based fuzzy search.</li>'
       }
 
       // highlighted by sentence-based fuzzy search
       var str = 'I like fool and sport'
-      highlightIndex = highlighter.search(str, {fuzzySearchOptions: {}})
+      highlightIndex = annotator.search(str, {fuzzySearchOptions: {}})
       if (highlightIndex !== -1) {
-        highlighter.highlight(highlightIndex, containerObj)
+        annotator.highlight(highlightIndex, containerObj)
         document.getElementById('logs').innerHTML += '<li>"' + str + '" is highlighted by sentence-based fuzzy search.</li>'
       }
 
       // highlighted by eager search
       var str = 'udon noodles'
-      highlightIndex = highlighter.search(str, {eagerSearchOptions: containerObj})
+      highlightIndex = annotator.search(str, {eagerSearchOptions: containerObj})
       if (highlightIndex !== -1) {
-        highlighter.highlight(highlightIndex, containerObj)
+        annotator.highlight(highlightIndex, containerObj)
         document.getElementById('logs').innerHTML += '<li>"' + str + '" is highlighted by eager search.</li>'
       }
 
       // return the highlight content first and then update dom
       var str = 'badminton'
-      highlightIndex = highlighter.search(str)
+      highlightIndex = annotator.search(str)
       if (highlightIndex !== -1) {
-        var content = highlighter.highlight(highlightIndex, {content: document.getElementById('content').innerHTML})
+        var content = annotator.highlight(highlightIndex, {content: document.getElementById('content').innerHTML})
         document.getElementById('content').innerHTML = content
         document.getElementById('logs').innerHTML += '<li>"' + str + '" is highlighted by returning the new content.</li>'
       }
 
       // combine search and highlight
       var str = 'football'
-      var result = highlighter.searchAndHighlight(str, {highlightOptions: containerObj})
+      var result = annotator.searchAndHighlight(str, {highlightOptions: containerObj})
       document.getElementById('logs').innerHTML += '<li>"' + str + '" is highlighted by searchAndHighlight.</li>'
 
       var str = 'friends'
-      var result = highlighter.searchAndHighlight(str, {highlightOptions: containerObj})
+      var result = annotator.searchAndHighlight(str, {highlightOptions: containerObj})
       // remove the last highlight in 2 seconds
       setTimeout(function() {
-        highlighter.unhighlight(result.highlightIndex, containerObj)
-        // highlighter.unhighlight(result.highlightIndex, {containerId: 'content', byStringOperation: true})
+        annotator.unhighlight(result.highlightIndex, containerObj)
+        // annotator.unhighlight(result.highlightIndex, {containerId: 'content', byStringOperation: true})
         document.getElementById('logs').innerHTML += '<li>"' + str + '" was unhighlighted.</li>'
       }, 2000)
     </script>

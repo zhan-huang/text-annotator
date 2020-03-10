@@ -1,1 +1,1 @@
-module.exports = require('./text-highlight.js').default
+module.exports = require('./text-annotator.js').default

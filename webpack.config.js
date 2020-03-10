@@ -6,7 +6,7 @@ module.exports = {
   mode: 'production',
   output: {
     path: path.join(__dirname, 'public/js'),
-    filename: 'text-highlight.min.js',
-    library: 'Highlighter'
+    filename: 'text-annotator.min.js',
+    library: 'TextAnnotator'
   }
 }

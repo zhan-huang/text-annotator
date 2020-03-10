@@ -4,16 +4,7 @@ import getSentences from './ext/sbd'
 const isBrowser =
   typeof window !== 'undefined' && typeof window.document !== 'undefined'
 
-// id pattern can be customized
-const OPEN_HIGHLIGHT_TAG = (
-  highlightIdPattern,
-  highlightIndex,
-  highlightClass
-) =>
-  `<span id="${highlightIdPattern + highlightIndex}" class="${highlightClass}">`
-const CLOSE_HIGHLIGHT_TAG = '</span>'
-
-class Highlighter {
+class TextAnnotator {
   constructor(options = {}) {
     // either containerId or content is required
     const containerId = options.containerId
@@ -51,7 +42,7 @@ class Highlighter {
     const trim = options.trim === undefined || options.trim
 
     if (trim) {
-      const trimmingRes = Highlighter.trim(prefix, str, postfix)
+      const trimmingRes = TextAnnotator.trim(prefix, str, postfix)
       prefix = trimmingRes.prefix
       str = trimmingRes.str
       postfix = trimmingRes.postfix
@@ -139,7 +130,7 @@ class Highlighter {
       content = document.getElementById(containerId).innerHTML
     }
 
-    const openTag = OPEN_HIGHLIGHT_TAG(
+    const openTag = TextAnnotator.createOpenTag(
       highlightIdPattern,
       highlightIndex,
       highlightClass
@@ -149,10 +140,10 @@ class Highlighter {
       highlightIndex,
       highlightClass
     )
-    let newContent = Highlighter.insert(content, openTag, loc[0])
-    newContent = Highlighter.insert(
+    let newContent = TextAnnotator.insert(content, openTag, loc[0])
+    newContent = TextAnnotator.insert(
       newContent,
-      CLOSE_HIGHLIGHT_TAG,
+      TextAnnotator.createCloseTag(),
       loc[1] + openTag.length
     )
     this.highlights[highlightIndex].highlighted = true
@@ -215,14 +206,14 @@ class Highlighter {
         highlightIndex,
         highlightClass
       )
-      const openTagLength = Highlighter.getOpenTagLength(
+      const openTagLength = TextAnnotator.getOpenTagLength(
         highlightIdPattern,
         highlightIndex,
         highlightClass
       )
       const substr1 = newContent.substring(
         loc[0],
-        loc[1] + openTagLength + CLOSE_HIGHLIGHT_TAG.length
+        loc[1] + openTagLength + TextAnnotator.getCloseTagLength()
       )
       const substr2 = newContent.substring(
         loc[0] + openTagLength,
@@ -308,7 +299,7 @@ class Highlighter {
       while (window.find(strWithFixes, caseSensitive)) {
         document.execCommand('hiliteColor', true, 'rgba(255, 255, 255, 0)')
         sel.collapseToEnd()
-        // step 2: locate the found within the container where the highlighter is applied
+        // step 2: locate the found within the container where the annotator is applied
         const found = document.querySelector(
           '#' +
             containerId +
@@ -316,7 +307,11 @@ class Highlighter {
         )
         if (found) {
           const foundStr = found.innerHTML.replace(/<[^>]*>/g, '')
-          const result = Highlighter.getBestSubstring(foundStr, str, threshold)
+          const result = TextAnnotator.getBestSubstring(
+            foundStr,
+            str,
+            threshold
+          )
           if (result.similarity) {
             const index = this.isHTML
               ? this.stripedHTML.indexOf(foundStr)
@@ -373,7 +368,11 @@ class Highlighter {
           text.substring(i - prefix.length, i) +
           str +
           text.substring(i + str.length, i + str.length + postfix.length)
-        const similarity = Highlighter.getSimilarity(f, fragment, caseSensitive)
+        const similarity = TextAnnotator.getSimilarity(
+          f,
+          fragment,
+          caseSensitive
+        )
         if (similarity >= tbThreshold) {
           tbThreshold = similarity
           strIndex = i
@@ -393,7 +392,7 @@ class Highlighter {
       if (this.sentences.length) {
         sentences = this.sentences
       } else {
-        sentences = this.sentences = Highlighter.sentenize(text)
+        sentences = this.sentences = TextAnnotator.sentenize(text)
       }
 
       // step 2 (for efficiency only): filter sentences by words of the str
@@ -451,7 +450,7 @@ class Highlighter {
       let bestResult = null
       let mostPossibleSentence = null
       filteredSentences.forEach((sentence, index) => {
-        let result = Highlighter.getBestSubstring(
+        let result = TextAnnotator.getBestSubstring(
           sentence.raw,
           str,
           sbThreshold,
@@ -464,7 +463,7 @@ class Highlighter {
           mostPossibleSentence = sentence
         } else if (index !== filteredSentences.length - 1) {
           // combine two sentences to reduce the inaccuracy of sentenizing text
-          result = Highlighter.getBestSubstring(
+          result = TextAnnotator.getBestSubstring(
             sentence.raw + filteredSentences[index + 1].raw,
             str,
             sbThreshold,
@@ -563,12 +562,12 @@ class Highlighter {
     // step 2: check locations of other highlights
     this.highlights.forEach((highlight, highlightIndex) => {
       if (highlight.highlighted) {
-        const openTagLength = Highlighter.getOpenTagLength(
+        const openTagLength = TextAnnotator.getOpenTagLength(
           highlightIdPattern,
           highlightIndex,
           highlightClass
         )
-        const closeTagLength = CLOSE_HIGHLIGHT_TAG.length
+        const closeTagLength = TextAnnotator.getCloseTagLength()
         const loc = highlight.loc
         if (highlightLoc[0] >= loc[1]) {
           locInc[0] += openTagLength + closeTagLength
@@ -598,12 +597,25 @@ class Highlighter {
     return [highlightLoc[0] + locInc[0], highlightLoc[1] + locInc[1]]
   }
 
+  static createOpenTag(highlightIdPattern, highlightIndex, highlightClass) {
+    return `<span id="${highlightIdPattern +
+      highlightIndex}" class="${highlightClass}">`
+  }
+
+  static createCloseTag() {
+    return `</span>`
+  }
+
   static getOpenTagLength(highlightIdPattern, highlightIndex, highlightClass) {
-    return OPEN_HIGHLIGHT_TAG(
+    return TextAnnotator.createOpenTag(
       highlightIdPattern,
       highlightIndex,
       highlightClass
     ).length
+  }
+
+  static getCloseTagLength() {
+    return TextAnnotator.createCloseTag().length
   }
 
   static trim(prefix, str, postfix) {
@@ -642,14 +654,14 @@ class Highlighter {
   static getBestSubstring(str, substr, threshold, lenRatio, caseSensitive) {
     let result = {}
 
-    let similarity = Highlighter.getSimilarity(str, substr, caseSensitive)
+    let similarity = TextAnnotator.getSimilarity(str, substr, caseSensitive)
     if (similarity >= threshold) {
       // step 1: derive best substr
       const words = str.split(' ')
       while (words.length) {
         const firstWord = words.shift()
         const newStr = words.join(' ')
-        let newSimilarity = Highlighter.getSimilarity(
+        let newSimilarity = TextAnnotator.getSimilarity(
           newStr,
           substr,
           caseSensitive
@@ -657,7 +669,7 @@ class Highlighter {
         if (newSimilarity < similarity) {
           words.unshift(firstWord)
           const lastWord = words.pop()
-          newSimilarity = Highlighter.getSimilarity(
+          newSimilarity = TextAnnotator.getSimilarity(
             words.join(' '),
             substr,
             caseSensitive
@@ -693,7 +705,7 @@ class Highlighter {
     }
     if (str1 === str2) return 1
     // set str2 to denominator
-    return Highlighter.lcsLength(str1, str2) / str2.length
+    return TextAnnotator.lcsLength(str1, str2) / str2.length
   }
 
   static lcsLength(str1, str2) {
@@ -715,4 +727,4 @@ class Highlighter {
   }
 }
 
-export default Highlighter
+export default TextAnnotator
