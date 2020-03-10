@@ -51,7 +51,7 @@ class Highlighter {
     const trim = options.trim === undefined || options.trim
 
     if (trim) {
-      const trimmingRes = this.trim(prefix, str, postfix)
+      const trimmingRes = Highlighter.trim(prefix, str, postfix)
       prefix = trimmingRes.prefix
       str = trimmingRes.str
       postfix = trimmingRes.postfix
@@ -215,7 +215,7 @@ class Highlighter {
         highlightIndex,
         highlightClass
       )
-      const openTagLength = this.getOpenTagLength(
+      const openTagLength = Highlighter.getOpenTagLength(
         highlightIdPattern,
         highlightIndex,
         highlightClass
@@ -245,8 +245,6 @@ class Highlighter {
       }
     }
   }
-
-  // unhighlight all here...
 
   stripAndStoreHTMLTags() {
     let tag
@@ -293,9 +291,9 @@ class Highlighter {
   }
 
   eagerSearch(prefix, str, postfix, eagerSearchOptions = {}) {
+    const caseSensitive = eagerSearchOptions.caseSensitive
     const containerId = eagerSearchOptions.containerId
     const threshold = eagerSearchOptions.threshold || 0.74
-    const caseSensitive = eagerSearchOptions.caseSensitive
 
     const strWithFixes = prefix + str + postfix
 
@@ -344,15 +342,17 @@ class Highlighter {
 
   // improve later***
   fuzzySearch(prefix, str, postfix, fuzzySearchOptions = {}) {
+    const caseSensitive = fuzzySearchOptions.caseSensitive
+
     let tbThreshold = fuzzySearchOptions.tbThreshold || 0.68
+    const tokenBased = fuzzySearchOptions.tokenBased
+
     let sbThreshold = fuzzySearchOptions.sbThreshold || 0.85
     const lenRatio = fuzzySearchOptions.lenRatio || 1.2
     const processSentence = fuzzySearchOptions.processSentence
-    const tokenBased = fuzzySearchOptions.tokenBased
     const sentenceBased =
       fuzzySearchOptions.sentenceBased === undefined ||
       fuzzySearchOptions.sentenceBased
-    const caseSensitive = fuzzySearchOptions.caseSensitive
 
     let highlightIndex = -1
     const text = this.isHTML ? this.stripedHTML : this.originalContent
@@ -563,7 +563,7 @@ class Highlighter {
     // step 2: check locations of other highlights
     this.highlights.forEach((highlight, highlightIndex) => {
       if (highlight.highlighted) {
-        const openTagLength = this.getOpenTagLength(
+        const openTagLength = Highlighter.getOpenTagLength(
           highlightIdPattern,
           highlightIndex,
           highlightClass
@@ -598,7 +598,7 @@ class Highlighter {
     return [highlightLoc[0] + locInc[0], highlightLoc[1] + locInc[1]]
   }
 
-  getOpenTagLength(highlightIdPattern, highlightIndex, highlightClass) {
+  static getOpenTagLength(highlightIdPattern, highlightIndex, highlightClass) {
     return OPEN_HIGHLIGHT_TAG(
       highlightIdPattern,
       highlightIndex,
@@ -606,7 +606,7 @@ class Highlighter {
     ).length
   }
 
-  trim(prefix, str, postfix) {
+  static trim(prefix, str, postfix) {
     prefix = prefix.replace(/^\s+/, '')
     postfix = postfix.replace(/\s+$/, '')
     if (!prefix) {
