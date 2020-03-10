@@ -1,8 +1,8 @@
 {
   "name": "text-annotator",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "A library for locating and annotating plain text in HTML",
-  "main": "public/js/text-annotator.min.js",
+  "main": "src/text-annotator.js",
   "scripts": {
     "lint": "./node_modules/.bin/eslint src/** test/** --fix",
     "lint:nofix": "./node_modules/.bin/eslint src/** test/** --max-warnings 0",

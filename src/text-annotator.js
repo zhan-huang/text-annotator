@@ -313,9 +313,8 @@ class TextAnnotator {
             threshold
           )
           if (result.similarity) {
-            const index = this.isHTML
-              ? this.stripedHTML.indexOf(foundStr)
-              : this.originalContent.indexOf(foundStr)
+            const text = this.isHTML ? this.stripedHTML : this.originalContent
+            const index = text.indexOf(foundStr)
             if (index !== -1) {
               highlightIndex =
                 this.highlights.push({
