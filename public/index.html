@@ -69,8 +69,6 @@
       var result = highlighter.searchAndHighlight(str, {highlightOptions: containerObj})
       document.getElementById('logs').innerHTML += '<li>"' + str + '" is highlighted by searchAndHighlight.</li>'
 
-      // search and highlight all here...
-
       var str = 'friends'
       var result = highlighter.searchAndHighlight(str, {highlightOptions: containerObj})
       // remove the last highlight in 2 seconds
@@ -79,8 +77,6 @@
         // highlighter.unhighlight(result.highlightIndex, {containerId: 'content', byStringOperation: true})
         document.getElementById('logs').innerHTML += '<li>"' + str + '" was unhighlighted.</li>'
       }, 2000)
-
-      //unhighlight all here...
     </script>
     <style>
       .highlight {

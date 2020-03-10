@@ -20,11 +20,11 @@ class Highlighter {
     const content = options.content
     const isHTML = options.isHTML
 
-    if (content) {
-      this.originalContent = content
-    } else if (isBrowser && containerId) {
-      this.originalContent = document.getElementById(containerId).innerHTML
-    }
+    // containerId has higher priority over content
+    this.originalContent =
+      isBrowser && containerId
+        ? document.getElementById(containerId).innerHTML
+        : content
     // isHTML is used to reduce the memory used: stripedHTML is empty if isHTML is false
     this.isHTML = isHTML
 
@@ -191,24 +191,13 @@ class Highlighter {
     }
   }
 
-  // only support directly search for now
-  searchAndHighlightAll(str, options) {
-    const highlightIndexes = this.searchAll(str, options.searchOptions)
-    if (highlightIndexes.length) {
-      return {
-        highlightIndexes,
-        content: this.highlightAll(highlightIndexes, options.highlightOptions)
-      }
-    }
-  }
-
   unhighlight(highlightIndex, options = {}) {
     // byStringOperation is used to decide whether the content is changed by string operation or dom operation
     const byStringOperation = options.byStringOperation
-    const highlightClass = options.highlightClass || 'highlight'
     // either containerId or content is required
     const containerId = options.containerId
     let content = options.content
+    const highlightClass = options.highlightClass || 'highlight'
     const highlightIdPattern = options.highlightIdPattern || 'highlight-'
     // if true, return the unhighlighted content instead of unhighlighting on the page directly
     const returnContent = options.returnContent

@@ -74,20 +74,6 @@ test('test combination of searching and highlighting', () => {
   )
 })
 
-test('test search and highlight all', () => {
-  const options = contentObj()
-  const highlighter = new Highlighter(options)
-  const result = highlighter.searchAndHighlightAll('Zhan Huang', {
-    highlightOptions: options
-  })
-  const { content, highlightIndexes } = result
-  const openTag1 = createOpenTag(highlightIndexes[0])
-  const openTag2 = createOpenTag(highlightIndexes[1])
-  expect(content).toBe(
-    `"I am <b><i>${openTag1}Zhan Huang${closeTag}</i></b>, a <b>frontend developer</b> in EMBL-EBI. I like food and sports. My favourite food is udon noodles." - ${openTag2}Zhan Huang${closeTag}`
-  )
-})
-
 test('test removal of a highlight', () => {
   const options = contentObj()
   const highlighter = new Highlighter(options)
@@ -102,5 +88,3 @@ test('test removal of a highlight', () => {
     })
   ).toBe(content)
 })
-
-// test unhighlight all here...
