@@ -1,6 +1,6 @@
 {
   "name": "text-annotator",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "A library for locating and annotating plain text in HTML",
   "main": "src/text-annotator.js",
   "scripts": {
