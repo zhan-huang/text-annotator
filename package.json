@@ -12,14 +12,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://gitlab.ebi.ac.uk/literature-services/development/text-annotator.git"
+    "url": "git+https://github.com/zhan-huang/text-annotator.git"
   },
   "author": "Zhan Huang",
   "license": "MIT",
   "bugs": {
-    "url": "https://gitlab.ebi.ac.uk/literature-services/development/text-annotator/issues"
+    "url": "https://github.com/zhan-huang/text-annotator/issues"
   },
-  "homepage": "https://gitlab.ebi.ac.uk/literature-services/development/text-annotator",
+  "homepage": "https://github.com/zhan-huang/text-annotator",
   "devDependencies": {
     "@babel/core": "^7.4.3",
     "@babel/preset-env": "^7.4.3",
