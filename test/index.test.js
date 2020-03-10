@@ -6,6 +6,9 @@ const contentObj = () => {
   return { content }
 }
 
+const createOpenTag = highlightIndex =>
+  `<span id="highlight-${highlightIndex}" class="highlight">`
+
 const closeTag = '</span>'
 
 test('test direct search', () => {
@@ -13,7 +16,7 @@ test('test direct search', () => {
   const highlighter = new Highlighter(options)
   const highlightIndex = highlighter.search('I')
   const newContent = highlighter.highlight(highlightIndex, options)
-  const openTag = highlighter.createOpenTag(highlightIndex)
+  const openTag = createOpenTag(highlightIndex)
   expect(newContent).toBe(
     `"${openTag}I${closeTag} am <b><i>Zhan Huang</i></b>, a <b>frontend developer</b> in EMBL-EBI. I like food and sports. My favourite food is udon noodles." - Zhan Huang`
   )
@@ -24,8 +27,8 @@ test('test search all', () => {
   const highlighter = new Highlighter(options)
   const highlightIndexes = highlighter.searchAll('Zhan Huang')
   const newContent = highlighter.highlightAll(highlightIndexes, options)
-  const openTag1 = highlighter.createOpenTag(highlightIndexes[0])
-  const openTag2 = highlighter.createOpenTag(highlightIndexes[1])
+  const openTag1 = createOpenTag(highlightIndexes[0])
+  const openTag2 = createOpenTag(highlightIndexes[1])
   expect(newContent).toBe(
     `"I am <b><i>${openTag1}Zhan Huang${closeTag}</i></b>, a <b>frontend developer</b> in EMBL-EBI. I like food and sports. My favourite food is udon noodles." - ${openTag2}Zhan Huang${closeTag}`
   )
@@ -40,7 +43,7 @@ test('test token-based fuzzy search', () => {
     fuzzySearchOptions: {}
   })
   const newContent = highlighter.highlight(highlightIndex, options)
-  const openTag = highlighter.createOpenTag(highlightIndex)
+  const openTag = createOpenTag(highlightIndex)
   expect(newContent).toBe(
     `"I am <b><i>Zhan Huang</i></b>, a <b>${openTag}frontend developer${closeTag}</b> in EMBL-EBI. I like food and sports. My favourite food is udon noodles." - Zhan Huang`
   )
@@ -53,7 +56,7 @@ test('test sentence-based fuzzy search', () => {
     fuzzySearchOptions: {}
   })
   const newContent = highlighter.highlight(highlightIndex, options)
-  const openTag = highlighter.createOpenTag(highlightIndex)
+  const openTag = createOpenTag(highlightIndex)
   expect(newContent).toBe(
     `"I am <b><i>Zhan Huang</i></b>, a <b>frontend developer</b> in EMBL-EBI. ${openTag}I like food${closeTag} and sports. My favourite food is udon noodles." - Zhan Huang`
   )
@@ -65,7 +68,7 @@ test('test combination of searching and highlighting', () => {
   const result = highlighter.searchAndHighlight('sports', {
     highlightOptions: options
   })
-  const openTag = highlighter.createOpenTag(result.highlightIndex)
+  const openTag = createOpenTag(result.highlightIndex)
   expect(result.content).toBe(
     `"I am <b><i>Zhan Huang</i></b>, a <b>frontend developer</b> in EMBL-EBI. I like food and ${openTag}sports${closeTag}. My favourite food is udon noodles." - Zhan Huang`
   )
@@ -78,8 +81,8 @@ test('test search and highlight all', () => {
     highlightOptions: options
   })
   const { content, highlightIndexes } = result
-  const openTag1 = highlighter.createOpenTag(highlightIndexes[0])
-  const openTag2 = highlighter.createOpenTag(highlightIndexes[1])
+  const openTag1 = createOpenTag(highlightIndexes[0])
+  const openTag2 = createOpenTag(highlightIndexes[1])
   expect(content).toBe(
     `"I am <b><i>${openTag1}Zhan Huang${closeTag}</i></b>, a <b>frontend developer</b> in EMBL-EBI. I like food and sports. My favourite food is udon noodles." - ${openTag2}Zhan Huang${closeTag}`
   )

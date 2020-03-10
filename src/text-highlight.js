@@ -5,8 +5,12 @@ const isBrowser =
   typeof window !== 'undefined' && typeof window.document !== 'undefined'
 
 // id pattern can be customized
-const OPEN_HIGHLIGHT_TAG = (highlightIdPattern, highlightClass) =>
-  `<span id="${highlightIdPattern}" class="${highlightClass}">`
+const OPEN_HIGHLIGHT_TAG = (
+  highlightIdPattern,
+  highlightIndex,
+  highlightClass
+) =>
+  `<span id="${highlightIdPattern + highlightIndex}" class="${highlightClass}">`
 const CLOSE_HIGHLIGHT_TAG = '</span>'
 
 class Highlighter {
@@ -15,7 +19,6 @@ class Highlighter {
     const containerId = options.containerId
     const content = options.content
     const isHTML = options.isHTML
-    const highlightIdPattern = options.highlightIdPattern || 'highlight-'
 
     if (content) {
       this.originalContent = content
@@ -24,7 +27,6 @@ class Highlighter {
     }
     // isHTML is used to reduce the memory used: stripedHTML is empty if isHTML is false
     this.isHTML = isHTML
-    this.highlightIdPattern = highlightIdPattern
 
     // stripedHTML and tagLocations are needed only when the content is HTML
     this.stripedHTML = ''
@@ -122,6 +124,7 @@ class Highlighter {
     const containerId = options.containerId
     let content = options.content
     const highlightClass = options.highlightClass || 'highlight'
+    const highlightIdPattern = options.highlightIdPattern || 'highlight-'
     // if true, return the highlighted content instead of highlighting on the page directly
     const returnContent = options.returnContent
 
@@ -129,9 +132,16 @@ class Highlighter {
       content = document.getElementById(containerId).innerHTML
     }
 
-    this.highlights[highlightIndex].highlightClass = highlightClass
-    const openTag = this.createOpenTag(highlightIndex)
-    const loc = this.adjustLoc(highlightIndex)
+    const openTag = OPEN_HIGHLIGHT_TAG(
+      highlightIdPattern,
+      highlightIndex,
+      highlightClass
+    )
+    const loc = this.adjustLoc(
+      highlightIdPattern,
+      highlightIndex,
+      highlightClass
+    )
     let newContent = Highlighter.insert(content, openTag, loc[0])
     newContent = Highlighter.insert(
       newContent,
@@ -188,9 +198,11 @@ class Highlighter {
   unhighlight(highlightIndex, options = {}) {
     // byStringOperation is used to decide whether the content is changed by string operation or dom operation
     const byStringOperation = options.byStringOperation
+    const highlightClass = options.highlightClass || 'highlight'
     // either containerId or content is required
     const containerId = options.containerId
     let content = options.content
+    const highlightIdPattern = options.highlightIdPattern || 'highlight-'
     // if true, return the unhighlighted content instead of unhighlighting on the page directly
     const returnContent = options.returnContent
 
@@ -202,8 +214,16 @@ class Highlighter {
       }
 
       let newContent = content
-      const loc = this.adjustLoc(highlightIndex)
-      const openTagLength = this.getOpenTagLength(highlightIndex)
+      const loc = this.adjustLoc(
+        highlightIdPattern,
+        highlightIndex,
+        highlightClass
+      )
+      const openTagLength = this.getOpenTagLength(
+        highlightIdPattern,
+        highlightIndex,
+        highlightClass
+      )
       const substr1 = newContent.substring(
         loc[0],
         loc[1] + openTagLength + CLOSE_HIGHLIGHT_TAG.length
@@ -220,7 +240,7 @@ class Highlighter {
         document.getElementById(containerId).innerHTML = newContent
       }
     } else if (isBrowser) {
-      const elmId = this.highlightIdPattern + highlightIndex
+      const elmId = highlightIdPattern + highlightIndex
       document.getElementById(elmId).outerHTML = document.getElementById(
         elmId
       ).innerHTML
@@ -480,17 +500,8 @@ class Highlighter {
     return highlightIndex
   }
 
-  createOpenTag(highlightIndex) {
-    const highlightIdPattern = this.highlightIdPattern
-    const highlightClass = this.highlights[highlightIndex].highlightClass
-    return OPEN_HIGHLIGHT_TAG(highlightIdPattern, highlightClass).replace(
-      highlightIdPattern,
-      highlightIdPattern + highlightIndex
-    )
-  }
-
   // improve later***
-  adjustLoc(highlightIndex) {
+  adjustLoc(highlightIdPattern, highlightIndex, highlightClass) {
     const highlightLoc = this.highlights[highlightIndex].loc
     const locInc = [0, 0]
 
@@ -561,7 +572,11 @@ class Highlighter {
     // step 2: check locations of other highlights
     this.highlights.forEach((highlight, highlightIndex) => {
       if (highlight.highlighted) {
-        const openTagLength = this.getOpenTagLength(highlightIndex)
+        const openTagLength = this.getOpenTagLength(
+          highlightIdPattern,
+          highlightIndex,
+          highlightClass
+        )
         const closeTagLength = CLOSE_HIGHLIGHT_TAG.length
         const loc = highlight.loc
         if (highlightLoc[0] >= loc[1]) {
@@ -592,12 +607,11 @@ class Highlighter {
     return [highlightLoc[0] + locInc[0], highlightLoc[1] + locInc[1]]
   }
 
-  getOpenTagLength(highlightIndex) {
-    const highlightClass = this.highlights[highlightIndex].highlightClass
-    // an easy way to derive the length
-    return (
-      OPEN_HIGHLIGHT_TAG(this.highlightIdPattern, highlightClass) +
-      highlightIndex
+  getOpenTagLength(highlightIdPattern, highlightIndex, highlightClass) {
+    return OPEN_HIGHLIGHT_TAG(
+      highlightIdPattern,
+      highlightIndex,
+      highlightClass
     ).length
   }
 
