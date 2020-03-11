@@ -17,6 +17,11 @@
   },
   "author": "Zhan Huang",
   "license": "MIT",
+  "keywords": [
+    "text annotating",
+    "html",
+    "web"
+  ],
   "bugs": {
     "url": "https://github.com/zhan-huang/text-annotator/issues"
   },
