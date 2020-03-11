@@ -39,7 +39,7 @@ test('test search all', () => {
     'highlight'
   )
   expect(newContent).toBe(
-    `"I am <b><i>${openTag1}Zhan Huang${closeTag}</i></b>, a <b>frontend developer</b> in EMBL-EBI. I like food and sports. My favourite food is udon noodles." - ${openTag2}Zhan Huang${closeTag}`
+    `"I am <b><i>${openTag1}Zhan Huang</i></b>${closeTag}, a <b>frontend developer</b> in EMBL-EBI. I like food and sports. My favourite food is udon noodles." - ${openTag2}Zhan Huang${closeTag}`
   )
 })
 
@@ -58,7 +58,7 @@ test('test token-based fuzzy search', () => {
     'highlight'
   )
   expect(newContent).toBe(
-    `"I am <b><i>Zhan Huang</i></b>, a <b>${openTag}frontend developer${closeTag}</b> in EMBL-EBI. I like food and sports. My favourite food is udon noodles." - Zhan Huang`
+    `"I am <b><i>Zhan Huang</i></b>, a <b>${openTag}frontend developer</b>${closeTag} in EMBL-EBI. I like food and sports. My favourite food is udon noodles." - Zhan Huang`
   )
 })
 

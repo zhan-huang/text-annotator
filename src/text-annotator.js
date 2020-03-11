@@ -9,7 +9,7 @@ class TextAnnotator {
     // either containerId or content is required
     const containerId = options.containerId
     const content = options.content
-    const isHTML = options.isHTML
+    const isHTML = options.isHTML === undefined || options.isHTML
 
     // containerId has higher priority over content
     this.originalContent =
