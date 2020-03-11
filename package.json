@@ -6,7 +6,8 @@
   "scripts": {
     "lint": "./node_modules/.bin/eslint src/** test/** --fix",
     "lint:nofix": "./node_modules/.bin/eslint src/** test/** --max-warnings 0",
-    "build": "webpack --config webpack.config.js",
+    "build": "babel src -d build",
+    "build-min": "webpack --config webpack.config.js",
     "test": "jest",
     "sync": "node sync.js"
   },
@@ -21,9 +22,9 @@
   },
   "homepage": "https://github.com/zhan-huang/text-annotator",
   "devDependencies": {
-    "@babel/core": "^7.4.3",
-    "@babel/preset-env": "^7.4.3",
-    "babel-jest": "^24.7.1",
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.8.7",
+    "@babel/preset-env": "^7.8.7",
     "dotenv": "^8.0.0",
     "eslint": "^5.15.3",
     "eslint-config-prettier": "^4.3.0",
@@ -78,5 +79,8 @@
   "pre-commit": [
     "lint:nofix",
     "test"
-  ]
+  ],
+  "dependencies": {
+    "babel-jest": "^25.1.0"
+  }
 }
