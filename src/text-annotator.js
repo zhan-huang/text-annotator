@@ -32,7 +32,7 @@ class TextAnnotator {
     }
   }
 
-  search(str, options = {}) {
+  search(str, options = {}, lastHighlightIndex) {
     let prefix = options.prefix || ''
     let postfix = options.postfix || ''
     const directSearchOptions = options.directSearchOptions
@@ -55,7 +55,8 @@ class TextAnnotator {
       prefix,
       str,
       postfix,
-      directSearchOptions
+      directSearchOptions,
+      lastHighlightIndex
     )
     if (highlightIndex !== -1) {
       return highlightIndex
@@ -94,18 +95,7 @@ class TextAnnotator {
     const highlightIndexes = []
 
     const continueSearch = (str, options, lastHighlightIndex) => {
-      const highlightIndex = this.search(
-        str,
-        Object.assign(
-          {
-            directSearchOptions: Object.assign(
-              { lastHighlightIndex },
-              options.directSearchOptions
-            )
-          },
-          options
-        )
-      )
+      const highlightIndex = this.search(str, options, lastHighlightIndex)
       if (highlightIndex !== -1) {
         highlightIndexes.push(highlightIndex)
         continueSearch(str, options, highlightIndex)
@@ -251,12 +241,17 @@ class TextAnnotator {
     }
   }
 
-  directSearch(prefix, str, postfix, directSearchOptions = {}) {
+  directSearch(
+    prefix,
+    str,
+    postfix,
+    directSearchOptions = {},
+    lastHighlightIndex
+  ) {
     // by default case sensitive
     const caseSensitive =
       directSearchOptions.caseSensitive === undefined ||
       directSearchOptions.caseSensitive
-    const lastHighlightIndex = directSearchOptions.lastHighlightIndex
 
     let strWithFixes = prefix + str + postfix
     let text = this.isHTML ? this.stripedHTML : this.originalContent
