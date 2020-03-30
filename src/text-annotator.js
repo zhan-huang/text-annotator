@@ -24,7 +24,7 @@ class TextAnnotator {
     this.tagLocations = []
     // sentences are used in (sentence based) fuzzy search
     this.sentences = []
-    // can one highlight have more than one location
+    // one highlight can have more than one location because of the potential issue in tag insertion***
     this.highlights = []
 
     if (isHTML) {
@@ -32,6 +32,7 @@ class TextAnnotator {
     }
   }
 
+  // lastHighlightIndex can be within options***
   search(str, options = {}, lastHighlightIndex) {
     let prefix = options.prefix || ''
     let postfix = options.postfix || ''
@@ -42,10 +43,10 @@ class TextAnnotator {
     const trim = options.trim === undefined || options.trim
 
     if (trim) {
-      const trimmingRes = TextAnnotator.trim(prefix, str, postfix)
-      prefix = trimmingRes.prefix
-      str = trimmingRes.str
-      postfix = trimmingRes.postfix
+      const res = TextAnnotator.trim(prefix, str, postfix)
+      prefix = res.prefix
+      str = res.str
+      postfix = res.postfix
     }
 
     let highlightIndex = -1
@@ -90,7 +91,7 @@ class TextAnnotator {
     return highlightIndex
   }
 
-  // only support directly search for now
+  // only support directly search for now***
   searchAll(str, options = {}) {
     const highlightIndexes = []
 
@@ -146,6 +147,7 @@ class TextAnnotator {
   }
 
   highlightAll(highlightIndexes, options = {}) {
+    // either containerId or content is required
     const { containerId, content, returnContent } = options
 
     let newContent =
@@ -171,6 +173,8 @@ class TextAnnotator {
       }
     }
   }
+
+  // add searchAndHighlightAll***
 
   unhighlight(highlightIndex, options = {}) {
     // byStringOperation is used to decide whether the content is changed by string operation or dom operation
@@ -227,6 +231,8 @@ class TextAnnotator {
     }
   }
 
+  // add unighlightAll***
+
   stripAndStoreHTMLTags() {
     let tag
     this.stripedHTML = this.originalContent
@@ -248,10 +254,7 @@ class TextAnnotator {
     directSearchOptions = {},
     lastHighlightIndex
   ) {
-    // by default case sensitive
-    const caseSensitive =
-      directSearchOptions.caseSensitive === undefined ||
-      directSearchOptions.caseSensitive
+    const caseSensitive = directSearchOptions.caseSensitive
 
     let strWithFixes = prefix + str + postfix
     let text = this.isHTML ? this.stripedHTML : this.originalContent
@@ -284,7 +287,7 @@ class TextAnnotator {
     const strWithFixes = prefix + str + postfix
 
     let highlightIndex = -1
-    // IE will not be considered
+    // IE will not be considered***
     if (window.find) {
       document.designMode = 'on'
 
