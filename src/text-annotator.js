@@ -484,6 +484,7 @@ class TextAnnotator {
       //     }) - 1
       // }
 
+      // step 3: find the most possible sentence
       let mostPossibleSentence = null
       filteredSentences.forEach((sentence, index) => {
         const similarity = TextAnnotator.getSimilarity(
@@ -499,10 +500,10 @@ class TextAnnotator {
           const newSentenceRaw = sentence.raw + filteredSentences[index + 1].raw
           const lengthDiff =
             Math.abs(newSentenceRaw.length - str.length) / str.length
-          // whether allowing the customization of lengthDiffThreshold
+          // whether allowing the customization of length diff threshold****
           if (lengthDiff <= 0.1) {
             const newSimilarity = TextAnnotator.getSimilarity(
-              sentence.raw,
+              newSentenceRaw,
               str,
               caseSensitive
             )
@@ -517,13 +518,14 @@ class TextAnnotator {
         }
       })
 
+      // step 4:  if the most possible sentence is found, derive and return the location of the most similar str from it
       if (mostPossibleSentence) {
         const result = TextAnnotator.getBestSubstring(
           mostPossibleSentence.raw,
           str,
           sbThreshold,
           2,
-          false,
+          caseSensitive,
           true
         )
         if (result.loc) {
