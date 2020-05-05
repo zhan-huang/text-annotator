@@ -8,6 +8,7 @@
     "lint:nofix": "./node_modules/.bin/eslint src/** test/** --max-warnings 0",
     "build": "babel src -d build",
     "build-min": "webpack --config webpack.config.js",
+    "sync": "node sync.js",
     "test": "jest"
   },
   "repository": {
@@ -38,6 +39,7 @@
     "jest": "^24.5.0",
     "pre-commit": "^1.2.2",
     "prettier": "1.18.2",
+    "sync-directory": "^2.0.8",
     "webpack": "^4.29.6",
     "webpack-cli": "^3.3.0"
   },
