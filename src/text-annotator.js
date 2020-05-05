@@ -340,7 +340,7 @@ class TextAnnotator {
     const tokenBased = fuzzySearchOptions.tokenBased
 
     let sbThreshold = fuzzySearchOptions.sbThreshold || 0.85
-    const lenRatio = fuzzySearchOptions.lenRatio || 1.2
+    // const lenRatio = fuzzySearchOptions.lenRatio || 1.2
     const processSentence = fuzzySearchOptions.processSentence
     const sentenceBased =
       fuzzySearchOptions.sentenceBased === undefined ||
@@ -443,45 +443,96 @@ class TextAnnotator {
         }
       }
 
-      // step 3: find the sentence that includes the most similar str
-      let bestResult = null
+      // // step 3: find the sentence that includes the most similar str
+      // let bestResult = null
+      // let mostPossibleSentence = null
+      // filteredSentences.forEach((sentence, index) => {
+      //   let result = TextAnnotator.getBestSubstring(
+      //     sentence.raw,
+      //     str,
+      //     sbThreshold,
+      //     lenRatio,
+      //     caseSensitive
+      //   )
+      //   if (result.similarity) {
+      //     sbThreshold = result.similarity
+      //     bestResult = result
+      //     mostPossibleSentence = sentence
+      //   } else if (index !== filteredSentences.length - 1) {
+      //     // combine two sentences to reduce the inaccuracy of sentenizing text
+      //     result = TextAnnotator.getBestSubstring(
+      //       sentence.raw + filteredSentences[index + 1].raw,
+      //       str,
+      //       sbThreshold,
+      //       lenRatio,
+      //       caseSensitive
+      //     )
+      //     if (result.similarity) {
+      //       sbThreshold = result.similarity
+      //       bestResult = result
+      //       mostPossibleSentence = filteredSentences[index]
+      //     }
+      //   }
+      // })
+
+      // // step 4: if such sentence is found, derive and return the location of the most similar str
+      // if (bestResult) {
+      //   let index = mostPossibleSentence.index
+      //   highlightIndex =
+      //     this.highlights.push({
+      //       loc: [index + bestResult.loc[0], index + bestResult.loc[1]]
+      //     }) - 1
+      // }
+
       let mostPossibleSentence = null
       filteredSentences.forEach((sentence, index) => {
-        let result = TextAnnotator.getBestSubstring(
+        const similarity = TextAnnotator.getSimilarity(
           sentence.raw,
           str,
-          sbThreshold,
-          lenRatio,
           caseSensitive
         )
-        if (result.similarity) {
-          sbThreshold = result.similarity
-          bestResult = result
+        if (similarity >= sbThreshold) {
+          sbThreshold = similarity
           mostPossibleSentence = sentence
         } else if (index !== filteredSentences.length - 1) {
           // combine two sentences to reduce the inaccuracy of sentenizing text
-          result = TextAnnotator.getBestSubstring(
-            sentence.raw + filteredSentences[index + 1].raw,
-            str,
-            sbThreshold,
-            lenRatio,
-            caseSensitive
-          )
-          if (result.similarity) {
-            sbThreshold = result.similarity
-            bestResult = result
-            mostPossibleSentence = filteredSentences[index]
+          const newSentenceRaw = sentence.raw + filteredSentences[index + 1].raw
+          const lengthDiff =
+            Math.abs(newSentenceRaw.length - str.length) / str.length
+          // whether allowing the customization of lengthDiffThreshold
+          if (lengthDiff <= 0.1) {
+            const newSimilarity = TextAnnotator.getSimilarity(
+              sentence.raw,
+              str,
+              caseSensitive
+            )
+            if (newSimilarity >= sbThreshold) {
+              sbThreshold = newSimilarity
+              mostPossibleSentence = {
+                raw: newSentenceRaw,
+                index: sentence.index
+              }
+            }
           }
         }
       })
 
-      // step 4: if such sentence is found, derive and return the location of the most similar str
-      if (bestResult) {
-        let index = mostPossibleSentence.index
-        highlightIndex =
-          this.highlights.push({
-            loc: [index + bestResult.loc[0], index + bestResult.loc[1]]
-          }) - 1
+      if (mostPossibleSentence) {
+        const result = TextAnnotator.getBestSubstring(
+          mostPossibleSentence.raw,
+          str,
+          sbThreshold,
+          2,
+          false,
+          true
+        )
+        if (result.loc) {
+          let index = mostPossibleSentence.index
+          highlightIndex =
+            this.highlights.push({
+              loc: [index + result.loc[0], index + result.loc[1]]
+            }) - 1
+        }
       }
     }
     return highlightIndex
@@ -648,10 +699,19 @@ class TextAnnotator {
     })
   }
 
-  static getBestSubstring(str, substr, threshold, lenRatio, caseSensitive) {
+  static getBestSubstring(
+    str,
+    substr,
+    threshold,
+    lenRatio,
+    caseSensitive,
+    skipFirstRun
+  ) {
     let result = {}
 
-    let similarity = TextAnnotator.getSimilarity(str, substr, caseSensitive)
+    let similarity = skipFirstRun
+      ? threshold
+      : TextAnnotator.getSimilarity(str, substr, caseSensitive)
     if (similarity >= threshold) {
       // step 1: derive best substr
       const words = str.split(' ')
