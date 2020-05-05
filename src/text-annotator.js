@@ -340,7 +340,7 @@ class TextAnnotator {
     const tokenBased = fuzzySearchOptions.tokenBased
 
     let sbThreshold = fuzzySearchOptions.sbThreshold || 0.85
-    // const lenRatio = fuzzySearchOptions.lenRatio || 1.2
+    const lenRatio = fuzzySearchOptions.lenRatio || 2
     const processSentence = fuzzySearchOptions.processSentence
     const sentenceBased =
       fuzzySearchOptions.sentenceBased === undefined ||
@@ -524,7 +524,7 @@ class TextAnnotator {
           mostPossibleSentence.raw,
           str,
           sbThreshold,
-          2,
+          lenRatio,
           caseSensitive,
           true
         )
