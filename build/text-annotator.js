@@ -26,14 +26,15 @@ class TextAnnotator {
     this.stripedHTML = '';
     this.tagLocations = []; // sentences are used in (sentence based) fuzzy search
 
-    this.sentences = []; // can one highlight have more than one location
+    this.sentences = []; // one highlight can have more than one location because of the potential issue in tag insertion***
 
     this.highlights = [];
 
     if (isHTML) {
       this.stripAndStoreHTMLTags();
     }
-  }
+  } // lastHighlightIndex can be within options***
+
 
   search(str, options = {}, lastHighlightIndex) {
     let prefix = options.prefix || '';
@@ -45,10 +46,10 @@ class TextAnnotator {
     const trim = options.trim === undefined || options.trim;
 
     if (trim) {
-      const trimmingRes = TextAnnotator.trim(prefix, str, postfix);
-      prefix = trimmingRes.prefix;
-      str = trimmingRes.str;
-      postfix = trimmingRes.postfix;
+      const res = TextAnnotator.trim(prefix, str, postfix);
+      prefix = res.prefix;
+      str = res.str;
+      postfix = res.postfix;
     }
 
     let highlightIndex = -1; // direct search will always be performed
@@ -77,7 +78,7 @@ class TextAnnotator {
     }
 
     return highlightIndex;
-  } // only support directly search for now
+  } // only support directly search for now***
 
 
   searchAll(str, options = {}) {
@@ -123,6 +124,7 @@ class TextAnnotator {
   }
 
   highlightAll(highlightIndexes, options = {}) {
+    // either containerId or content is required
     const {
       containerId,
       content,
@@ -148,7 +150,8 @@ class TextAnnotator {
         content: this.highlight(highlightIndex, options.highlightOptions)
       };
     }
-  }
+  } // add searchAndHighlightAll***
+
 
   unhighlight(highlightIndex, options = {}) {
     // byStringOperation is used to decide whether the content is changed by string operation or dom operation
@@ -187,7 +190,8 @@ class TextAnnotator {
         return document.getElementById(containerId).innerHTML;
       }
     }
-  }
+  } // add unighlightAll***
+
 
   stripAndStoreHTMLTags() {
     let tag;
@@ -205,8 +209,7 @@ class TextAnnotator {
   }
 
   directSearch(prefix, str, postfix, directSearchOptions = {}, lastHighlightIndex) {
-    // by default case sensitive
-    const caseSensitive = directSearchOptions.caseSensitive === undefined || directSearchOptions.caseSensitive;
+    const caseSensitive = directSearchOptions.caseSensitive;
     let strWithFixes = prefix + str + postfix;
     let text = this.isHTML ? this.stripedHTML : this.originalContent;
 
@@ -241,7 +244,7 @@ class TextAnnotator {
     const containerId = eagerSearchOptions.containerId;
     const threshold = eagerSearchOptions.threshold || 0.74;
     const strWithFixes = prefix + str + postfix;
-    let highlightIndex = -1; // IE will not be considered
+    let highlightIndex = -1; // IE will not be considered***
 
     if (window.find) {
       document.designMode = 'on'; // step 1: ask the browser to highlight the found
@@ -288,7 +291,7 @@ class TextAnnotator {
     let tbThreshold = fuzzySearchOptions.tbThreshold || 0.68;
     const tokenBased = fuzzySearchOptions.tokenBased;
     let sbThreshold = fuzzySearchOptions.sbThreshold || 0.85;
-    const lenRatio = fuzzySearchOptions.lenRatio || 1.2;
+    const lenRatio = fuzzySearchOptions.lenRatio || 2;
     const processSentence = fuzzySearchOptions.processSentence;
     const sentenceBased = fuzzySearchOptions.sentenceBased === undefined || fuzzySearchOptions.sentenceBased;
     let highlightIndex = -1;
@@ -384,35 +387,83 @@ class TextAnnotator {
               }
             }
           }
-        } // step 3: find the sentence that includes the most similar str
+        } // // step 3: find the sentence that includes the most similar str
+        // let bestResult = null
+        // let mostPossibleSentence = null
+        // filteredSentences.forEach((sentence, index) => {
+        //   let result = TextAnnotator.getBestSubstring(
+        //     sentence.raw,
+        //     str,
+        //     sbThreshold,
+        //     lenRatio,
+        //     caseSensitive
+        //   )
+        //   if (result.similarity) {
+        //     sbThreshold = result.similarity
+        //     bestResult = result
+        //     mostPossibleSentence = sentence
+        //   } else if (index !== filteredSentences.length - 1) {
+        //     // combine two sentences to reduce the inaccuracy of sentenizing text
+        //     result = TextAnnotator.getBestSubstring(
+        //       sentence.raw + filteredSentences[index + 1].raw,
+        //       str,
+        //       sbThreshold,
+        //       lenRatio,
+        //       caseSensitive
+        //     )
+        //     if (result.similarity) {
+        //       sbThreshold = result.similarity
+        //       bestResult = result
+        //       mostPossibleSentence = filteredSentences[index]
+        //     }
+        //   }
+        // })
+        // // step 4: if such sentence is found, derive and return the location of the most similar str
+        // if (bestResult) {
+        //   let index = mostPossibleSentence.index
+        //   highlightIndex =
+        //     this.highlights.push({
+        //       loc: [index + bestResult.loc[0], index + bestResult.loc[1]]
+        //     }) - 1
+        // }
+        // step 3: find the most possible sentence
 
 
-        let bestResult = null;
         let mostPossibleSentence = null;
         filteredSentences.forEach((sentence, index) => {
-          let result = TextAnnotator.getBestSubstring(sentence.raw, str, sbThreshold, lenRatio, caseSensitive);
+          const similarity = TextAnnotator.getSimilarity(sentence.raw, str, caseSensitive);
 
-          if (result.similarity) {
-            sbThreshold = result.similarity;
-            bestResult = result;
+          if (similarity >= sbThreshold) {
+            sbThreshold = similarity;
             mostPossibleSentence = sentence;
           } else if (index !== filteredSentences.length - 1) {
             // combine two sentences to reduce the inaccuracy of sentenizing text
-            result = TextAnnotator.getBestSubstring(sentence.raw + filteredSentences[index + 1].raw, str, sbThreshold, lenRatio, caseSensitive);
+            const newSentenceRaw = sentence.raw + filteredSentences[index + 1].raw;
+            const lengthDiff = Math.abs(newSentenceRaw.length - str.length) / str.length; // whether allowing the customization of length diff threshold****
 
-            if (result.similarity) {
-              sbThreshold = result.similarity;
-              bestResult = result;
-              mostPossibleSentence = filteredSentences[index];
+            if (lengthDiff <= 0.1) {
+              const newSimilarity = TextAnnotator.getSimilarity(newSentenceRaw, str, caseSensitive);
+
+              if (newSimilarity >= sbThreshold) {
+                sbThreshold = newSimilarity;
+                mostPossibleSentence = {
+                  raw: newSentenceRaw,
+                  index: sentence.index
+                };
+              }
             }
           }
-        }); // step 4: if such sentence is found, derive and return the location of the most similar str
+        }); // step 4:  if the most possible sentence is found, derive and return the location of the most similar str from it
 
-        if (bestResult) {
-          let index = mostPossibleSentence.index;
-          highlightIndex = this.highlights.push({
-            loc: [index + bestResult.loc[0], index + bestResult.loc[1]]
-          }) - 1;
+        if (mostPossibleSentence) {
+          const result = TextAnnotator.getBestSubstring(mostPossibleSentence.raw, str, sbThreshold, lenRatio, caseSensitive, true);
+
+          if (result.loc) {
+            let index = mostPossibleSentence.index;
+            highlightIndex = this.highlights.push({
+              loc: [index + result.loc[0], index + result.loc[1]]
+            }) - 1;
+          }
         }
       }
 
@@ -567,9 +618,9 @@ class TextAnnotator {
     });
   }
 
-  static getBestSubstring(str, substr, threshold, lenRatio, caseSensitive) {
+  static getBestSubstring(str, substr, threshold, lenRatio, caseSensitive, skipFirstRun) {
     let result = {};
-    let similarity = TextAnnotator.getSimilarity(str, substr, caseSensitive);
+    let similarity = skipFirstRun ? threshold : TextAnnotator.getSimilarity(str, substr, caseSensitive);
 
     if (similarity >= threshold) {
       // step 1: derive best substr
