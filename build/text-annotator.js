@@ -16,15 +16,15 @@ class TextAnnotator {
   constructor(options = {}) {
     // either containerId or content is required
     const containerId = options.containerId;
-    const content = options.content;
+    const content = options.content; // isHTML is used to reduce the memory used: stripedHTML is empty if isHTML is false
+
     const isHTML = options.isHTML === undefined || options.isHTML; // containerId has higher priority over content
 
-    this.originalContent = isBrowser && containerId ? document.getElementById(containerId).innerHTML : content; // isHTML is used to reduce the memory used: stripedHTML is empty if isHTML is false
-
+    this.originalContent = isBrowser && containerId ? document.getElementById(containerId).innerHTML : content;
     this.isHTML = isHTML; // stripedHTML and tagLocations are needed only when the content is HTML
 
     this.stripedHTML = '';
-    this.tagLocations = []; // sentences are used in (sentence based) fuzzy search
+    this.tagLocations = []; // sentences are used in sentence-based fuzzy search
 
     this.sentences = []; // one highlight can have more than one location because of the potential issue in tag insertion***
 
@@ -33,7 +33,7 @@ class TextAnnotator {
     if (isHTML) {
       this.stripAndStoreHTMLTags();
     }
-  } // lastHighlightIndex can be within options***
+  } // lastHighlightIndex can be within options; it is currently used by searchAll
 
 
   search(str, options = {}, lastHighlightIndex) {
@@ -78,7 +78,7 @@ class TextAnnotator {
     }
 
     return highlightIndex;
-  } // only support directly search for now***
+  } // only support direct search for now
 
 
   searchAll(str, options = {}) {
@@ -113,7 +113,8 @@ class TextAnnotator {
     const openTag = TextAnnotator.createOpenTag(highlightIdPattern, highlightIndex, highlightClass);
     const loc = this.adjustLoc(highlightIdPattern, highlightIndex, highlightClass);
     let newContent = TextAnnotator.insert(content, openTag, loc[0]);
-    newContent = TextAnnotator.insert(newContent, TextAnnotator.createCloseTag(), loc[1] + openTag.length);
+    newContent = TextAnnotator.insert(newContent, TextAnnotator.createCloseTag(), loc[1] + openTag.length); // it has to be set after adjustLoc so that it will not be checked
+
     this.highlights[highlightIndex].highlighted = true;
 
     if (isBrowser && containerId && !returnContent) {
@@ -131,12 +132,15 @@ class TextAnnotator {
       returnContent
     } = options;
     let newContent = isBrowser && containerId ? document.getElementById(containerId).innerHTML : content;
-    highlightIndexes.forEach(highlightIndex => {
-      options.content = newContent;
-      newContent = this.highlight(highlightIndex, options);
-    });
 
-    if (!isBrowser || !containerId || returnContent) {
+    for (let i = 0; i < highlightIndexes.length; i++) {
+      options.content = newContent;
+      newContent = this.highlight(highlightIndexes[i], options);
+    }
+
+    if (isBrowser && containerId && !returnContent) {
+      document.getElementById(containerId).innerHTML = newContent;
+    } else {
       return newContent;
     }
   }
@@ -150,8 +154,7 @@ class TextAnnotator {
         content: this.highlight(highlightIndex, options.highlightOptions)
       };
     }
-  } // add searchAndHighlightAll***
-
+  }
 
   unhighlight(highlightIndex, options = {}) {
     // byStringOperation is used to decide whether the content is changed by string operation or dom operation
@@ -162,7 +165,8 @@ class TextAnnotator {
     const highlightClass = options.highlightClass || 'highlight';
     const highlightIdPattern = options.highlightIdPattern || 'highlight-'; // if true, return the unhighlighted content instead of unhighlighting on the page directly
 
-    const returnContent = options.returnContent;
+    const returnContent = options.returnContent; // it has to be set before adjustLoc so that it will not be checked
+
     this.highlights[highlightIndex].highlighted = false;
 
     if (byStringOperation) {
@@ -190,8 +194,7 @@ class TextAnnotator {
         return document.getElementById(containerId).innerHTML;
       }
     }
-  } // add unighlightAll***
-
+  }
 
   stripAndStoreHTMLTags() {
     let tag;
@@ -216,7 +219,8 @@ class TextAnnotator {
     if (!caseSensitive) {
       strWithFixes = strWithFixes.toLowerCase();
       text = text.toLowerCase();
-    }
+    } // for searchAll
+
 
     let offset = 0;
 
@@ -244,7 +248,7 @@ class TextAnnotator {
     const containerId = eagerSearchOptions.containerId;
     const threshold = eagerSearchOptions.threshold || 0.74;
     const strWithFixes = prefix + str + postfix;
-    let highlightIndex = -1; // IE will not be considered***
+    let highlightIndex = -1; // IE is not considered
 
     if (window.find) {
       document.designMode = 'on'; // step 1: ask the browser to highlight the found
@@ -255,6 +259,7 @@ class TextAnnotator {
       while (window.find(strWithFixes, caseSensitive)) {
         document.execCommand('hiliteColor', true, 'rgba(255, 255, 255, 0)');
         sel.collapseToEnd(); // step 2: locate the found within the container where the annotator is applied
+        // selector may become better
 
         const found = document.querySelector('#' + containerId + ' [style="background-color: rgba(255, 255, 255, 0);"]');
 
@@ -283,17 +288,17 @@ class TextAnnotator {
     }
 
     return highlightIndex;
-  } // improve later***
-
+  }
 
   fuzzySearch(prefix, str, postfix, fuzzySearchOptions = {}) {
     const caseSensitive = fuzzySearchOptions.caseSensitive;
-    let tbThreshold = fuzzySearchOptions.tbThreshold || 0.68;
     const tokenBased = fuzzySearchOptions.tokenBased;
+    let tbThreshold = fuzzySearchOptions.tbThreshold || 0.68; // sentence-based fuzzy search is enabled by default
+
+    const sentenceBased = fuzzySearchOptions.sentenceBased === undefined || fuzzySearchOptions.sentenceBased;
     let sbThreshold = fuzzySearchOptions.sbThreshold || 0.85;
     const lenRatio = fuzzySearchOptions.lenRatio || 2;
     const processSentence = fuzzySearchOptions.processSentence;
-    const sentenceBased = fuzzySearchOptions.sentenceBased === undefined || fuzzySearchOptions.sentenceBased;
     let highlightIndex = -1;
     const text = this.isHTML ? this.stripedHTML : this.originalContent; // token-based
 
@@ -310,13 +315,15 @@ class TextAnnotator {
       let strIndex = -1;
       const fragment = prefix + str + postfix;
 
-      for (const i of strIndexes) {
-        const f = text.substring(i - prefix.length, i) + str + text.substring(i + str.length, i + str.length + postfix.length);
+      for (let i = 0; i < strIndexes.length; i++) {
+        const si = strIndexes[i]; // f can be wider
+
+        const f = text.substring(si - prefix.length, si) + str + text.substring(si + str.length, si + str.length + postfix.length);
         const similarity = TextAnnotator.getSimilarity(f, fragment, caseSensitive);
 
         if (similarity >= tbThreshold) {
           tbThreshold = similarity;
-          strIndex = i;
+          strIndex = si;
         }
       } // step 3: check whether the most similar enough "fragment" is found, if yes return its location
 
@@ -341,53 +348,53 @@ class TextAnnotator {
         const words = str.split(/\s/);
         const filteredSentences = [];
 
-        for (const sentence of sentences) {
-          for (const word of words) {
-            if (sentence.raw.includes(word)) {
-              filteredSentences.push(sentence);
+        for (let i = 0; i < sentences.length; i++) {
+          for (let j = 0; j < words.length; j++) {
+            if (sentences[i].raw.includes(words[j])) {
+              filteredSentences.push(sentences[i]);
               break;
             }
           }
-        } //step 2.5: remove text that must not be annotated
+        } //step 3 (optional)
 
 
         if (processSentence) {
-          const tagLocations = this.tagLocations;
-          const length = tagLocations.length;
+          let index = 0; // for each sentence
 
-          if (length) {
-            let index = 0;
+          for (let i = 0; i < filteredSentences.length; i++) {
+            const fs = filteredSentences[i];
+            let raw = fs.raw; // loc without tags
 
-            for (const fs of filteredSentences) {
-              let raw = fs.raw;
-              const loc = [fs.index, fs.index + raw.length];
-              let locInc = 0;
+            const loc = [fs.index, fs.index + raw.length];
+            let locInc = 0; // add loc of all tags before the one being checked so as to derive the actual loc
 
-              for (let i = index; i < length; i++) {
-                const tagLoc = tagLocations[i];
+            const tagLocations = this.tagLocations; // for each loc of tag whose loc is larger than the last sentence
 
-                if (tagLoc[0] >= loc[0] && tagLoc[0] <= loc[1]) {
-                  const tag = this.originalContent.substring(tagLoc[0] + tagLoc[2], tagLoc[0] + tagLoc[2] + tagLoc[1]);
-                  const insertIndex = tagLoc[0] + locInc - loc[0];
-                  raw = raw.slice(0, insertIndex) + tag + raw.slice(insertIndex);
-                  locInc += tagLoc[1];
-                } else if (tagLoc[0] > loc[1]) {
-                  index = i - 1;
-                  break;
-                }
-              }
+            for (let j = index; j < tagLocations.length; j++) {
+              const tagLoc = tagLocations[j];
 
-              raw = processSentence(raw);
-              raw = raw.replace(/(<([^>]+)>)/gi, '');
-              const copy = fs.raw; // update the sentence if it got reduced
+              if (tagLoc[0] >= loc[0] && tagLoc[0] <= loc[1]) {
+                const tag = this.originalContent.substring(tagLoc[0] + tagLoc[2], tagLoc[0] + tagLoc[2] + tagLoc[1]);
+                const insertIndex = tagLoc[0] + locInc - loc[0];
+                raw = raw.slice(0, insertIndex) + tag + raw.slice(insertIndex);
+                locInc += tagLoc[1];
+              } else if (tagLoc[0] > loc[1]) {
+                index = j; // not sure this part
 
-              if (copy !== raw) {
-                fs.raw = raw;
-                fs.index = fs.index + copy.indexOf(raw);
+                break;
               }
             }
+
+            raw = processSentence(raw);
+            raw = raw.replace(/(<([^>]+)>)/gi, '');
+            const copy = fs.raw; // update the sentence if it got reduced
+
+            if (copy !== raw) {
+              fs.raw = raw;
+              fs.index = fs.index + copy.indexOf(raw);
+            }
           }
-        } // // step 3: find the sentence that includes the most similar str
+        } // // step 4: find the sentence that includes the most similar str
         // let bestResult = null
         // let mostPossibleSentence = null
         // filteredSentences.forEach((sentence, index) => {
@@ -418,7 +425,7 @@ class TextAnnotator {
         //     }
         //   }
         // })
-        // // step 4: if such sentence is found, derive and return the location of the most similar str
+        // // step 5: if such sentence is found, derive and return the location of the most similar str
         // if (bestResult) {
         //   let index = mostPossibleSentence.index
         //   highlightIndex =
@@ -426,20 +433,22 @@ class TextAnnotator {
         //       loc: [index + bestResult.loc[0], index + bestResult.loc[1]]
         //     }) - 1
         // }
-        // step 3: find the most possible sentence
+        // step 4: find the most possible sentence
 
 
         let mostPossibleSentence = null;
-        filteredSentences.forEach((sentence, index) => {
+
+        for (let i = 0; i < filteredSentences.length; i++) {
+          const sentence = filteredSentences[i];
           const similarity = TextAnnotator.getSimilarity(sentence.raw, str, caseSensitive);
 
           if (similarity >= sbThreshold) {
             sbThreshold = similarity;
             mostPossibleSentence = sentence;
-          } else if (index !== filteredSentences.length - 1) {
+          } else if (i !== filteredSentences.length - 1) {
             // combine two sentences to reduce the inaccuracy of sentenizing text
-            const newSentenceRaw = sentence.raw + filteredSentences[index + 1].raw;
-            const lengthDiff = Math.abs(newSentenceRaw.length - str.length) / str.length; // whether allowing the customization of length diff threshold****
+            const newSentenceRaw = sentence.raw + filteredSentences[i + 1].raw;
+            const lengthDiff = Math.abs(newSentenceRaw.length - str.length) / str.length; // whether allowing the customization of length diff threshold***
 
             if (lengthDiff <= 0.1) {
               const newSimilarity = TextAnnotator.getSimilarity(newSentenceRaw, str, caseSensitive);
@@ -453,7 +462,8 @@ class TextAnnotator {
               }
             }
           }
-        }); // step 4:  if the most possible sentence is found, derive and return the location of the most similar str from it
+        } // step 5:  if the most possible sentence is found, derive and return the location of the most similar str from it
+
 
         if (mostPossibleSentence) {
           const result = TextAnnotator.getBestSubstring(mostPossibleSentence.raw, str, sbThreshold, lenRatio, caseSensitive, true);
@@ -472,7 +482,10 @@ class TextAnnotator {
 
 
   adjustLoc(highlightIdPattern, highlightIndex, highlightClass) {
-    const highlightLoc = this.highlights[highlightIndex].loc;
+    const {
+      highlights
+    } = this;
+    const highlightLoc = highlights[highlightIndex].loc;
     const locInc = [0, 0]; // step 1: check locations of tags
 
     const tagLocations = this.tagLocations;
@@ -535,9 +548,11 @@ class TextAnnotator {
     } // step 2: check locations of other highlights
 
 
-    this.highlights.forEach((highlight, highlightIndex) => {
+    for (let i = 0; i < highlights.length; i++) {
+      const highlight = highlights[i];
+
       if (highlight.highlighted) {
-        const openTagLength = TextAnnotator.getOpenTagLength(highlightIdPattern, highlightIndex, highlightClass);
+        const openTagLength = TextAnnotator.getOpenTagLength(highlightIdPattern, i, highlightClass);
         const closeTagLength = TextAnnotator.getCloseTagLength();
         const loc = highlight.loc;
 
@@ -556,7 +571,8 @@ class TextAnnotator {
           locInc[1] += openTagLength;
         }
       }
-    });
+    }
+
     return [highlightLoc[0] + locInc[0], highlightLoc[1] + locInc[1]];
   }
 
@@ -624,6 +640,7 @@ class TextAnnotator {
 
     if (similarity >= threshold) {
       // step 1: derive best substr
+      // /s may be better***
       const words = str.split(' ');
 
       while (words.length) {
