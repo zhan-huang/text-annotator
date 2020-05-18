@@ -689,22 +689,72 @@ class TextAnnotator {
     if (str1 === str2) return 1; // set str2 to denominator
 
     return TextAnnotator.lcsLength(str1, str2) / str2.length;
-  }
+  } // copy from the code in https://www.npmjs.com/package/longest-common-subsequence
 
-  static lcsLength(str1, str2) {
-    const length1 = str1.length;
-    const length2 = str2.length;
-    const x = str1.split('');
-    const y = str2.split('');
-    const c = Array(length1 + 1).fill(Array(length2 + 1).fill(0));
 
-    for (let i = 1; i <= length1; i++) {
-      for (let j = 1; j <= length2; j++) {
-        c[i][j] = x[i - 1] === y[j - 1] ? c[i - 1][j - 1] + 1 : Math.max(c[i][j - 1], c[i - 1][j]);
+  static lcsLength(firstSequence, secondSequence, caseSensitive) {
+    function createArray(dimension) {
+      var array = [];
+
+      for (var i = 0; i < dimension; i++) {
+        array[i] = [];
+      }
+
+      return array;
+    }
+
+    var firstString = caseSensitive ? firstSequence : firstSequence.toLowerCase();
+    var secondString = caseSensitive ? secondSequence : secondSequence.toLowerCase();
+
+    if (firstString === secondString) {
+      return firstString;
+    }
+
+    if ((firstString || secondString) === '') {
+      return '';
+    }
+
+    var firstStringLength = firstString.length;
+    var secondStringLength = secondString.length;
+    var lcsMatrix = createArray(secondStringLength + 1);
+    var i;
+    var j;
+
+    for (i = 0; i <= firstStringLength; i++) {
+      lcsMatrix[0][i] = 0;
+    }
+
+    for (i = 0; i <= secondStringLength; i++) {
+      lcsMatrix[i][0] = 0;
+    }
+
+    for (i = 1; i <= secondStringLength; i++) {
+      for (j = 1; j <= firstStringLength; j++) {
+        if (firstString[j - 1] === secondString[i - 1]) {
+          lcsMatrix[i][j] = lcsMatrix[i - 1][j - 1] + 1;
+        } else {
+          lcsMatrix[i][j] = Math.max(lcsMatrix[i - 1][j], lcsMatrix[i][j - 1]);
+        }
       }
     }
 
-    return c[length1][length2];
+    var lcs = '';
+    i = secondStringLength;
+    j = firstStringLength;
+
+    while (i > 0 && j > 0) {
+      if (firstString[j - 1] === secondString[i - 1]) {
+        lcs = firstString[j - 1] + lcs;
+        i--;
+        j--;
+      } else if (Math.max(lcsMatrix[i - 1][j], lcsMatrix[i][j - 1]) === lcsMatrix[i - 1][j]) {
+        i--;
+      } else {
+        j--;
+      }
+    }
+
+    return lcs.length;
   }
 
 }
