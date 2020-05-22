@@ -345,6 +345,7 @@ class TextAnnotator {
       fuzzySearchOptions.sentenceBased === undefined ||
       fuzzySearchOptions.sentenceBased
     let sbThreshold = fuzzySearchOptions.sbThreshold || 0.85
+    const maxLengthDiff = fuzzySearchOptions.maxLengthDiff || 0.1
     const lenRatio = fuzzySearchOptions.lenRatio || 2
     const processSentence = fuzzySearchOptions.processSentence
 
@@ -507,8 +508,7 @@ class TextAnnotator {
           const newSentenceRaw = sentence.raw + filteredSentences[i + 1].raw
           const lengthDiff =
             Math.abs(newSentenceRaw.length - str.length) / str.length
-          // whether allowing the customization of length diff threshold***
-          if (lengthDiff <= 0.1) {
+          if (lengthDiff <= maxLengthDiff) {
             const newSimilarity = TextAnnotator.getSimilarity(
               newSentenceRaw,
               str,
