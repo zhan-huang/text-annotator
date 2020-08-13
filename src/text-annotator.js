@@ -4,6 +4,45 @@ import getSentences from './ext/sbd'
 const isBrowser =
   typeof window !== 'undefined' && typeof window.document !== 'undefined'
 
+const blockElements = [
+  'address',
+  'article',
+  'aside',
+  'blockquote',
+  'canvas',
+  'dd',
+  'div',
+  'dl',
+  'dt',
+  'fieldset',
+  'figcaption',
+  'figure',
+  'footer',
+  'form',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'header',
+  'hgroup',
+  'hr',
+  'li',
+  'main',
+  'nav',
+  'noscript',
+  'ol',
+  'output',
+  'p',
+  'pre',
+  'section',
+  'table',
+  'tfoot',
+  'ul',
+  'video'
+]
+
 class TextAnnotator {
   constructor(options = {}) {
     // either containerId or content is required
@@ -600,7 +639,10 @@ class TextAnnotator {
                 } else if (tag2.startsWith('</' + tagType)) {
                   closeTagCount++
                 }
-                if (requiredCloseTagNumber === closeTagCount) {
+                if (
+                  requiredCloseTagNumber === closeTagCount &&
+                  !blockElements.includes(tagType)
+                ) {
                   included = true
                   break
                 }
