@@ -195,8 +195,11 @@ class TextAnnotator {
         ? document.getElementById(containerId).innerHTML
         : content
     for (let i = 0; i < highlightIndexes.length; i++) {
-      options.content = newContent
-      newContent = this.highlight(highlightIndexes[i], options)
+      const newOptions = Object.assign({}, options)
+      delete newOptions.containerId
+      newOptions.content = newContent
+      newOptions.returnContent = true
+      newContent = this.highlight(highlightIndexes[i], newOptions)
     }
 
     if (isBrowser && containerId && !returnContent) {
@@ -586,82 +589,129 @@ class TextAnnotator {
     return highlightIndex
   }
 
-  // improve later***
+  // further improvement when one annotation binds with more than one highlight***
+  // block elements are only used to check in the = condition for now
+  includeRequiredTag(i, highlightLoc, tag) {
+    const isCloseTag = tag.startsWith('</')
+    const tagType = isCloseTag
+      ? tag.split('</')[1].split('>')[0]
+      : tag
+          .split(' ')[0]
+          .split('<')[1]
+          .split('>')[0]
+
+    let included = false
+
+    let requiredTagNumber = 1
+    let requiredTagCount = 0
+    // outer
+    if (isCloseTag) {
+      for (let i2 = i - 1; i2 >= 0; i2--) {
+        const tagLoc2 = this.tagLocations[i2]
+        if (highlightLoc[0] > tagLoc2[0]) {
+          break
+        } else {
+          const tag2 = this.originalContent.substring(
+            tagLoc2[0] + tagLoc2[2],
+            tagLoc2[0] + tagLoc2[2] + tagLoc2[1]
+          )
+          if (tag2.startsWith('</' + tagType)) {
+            requiredTagNumber++
+          } else if (tag2.startsWith('<' + tagType)) {
+            requiredTagCount++
+          }
+          if (requiredTagNumber === requiredTagCount) {
+            included = true
+            break
+          }
+        }
+      }
+    } else {
+      for (let i2 = i + 1; i2 < this.tagLocations.length; i2++) {
+        const tagLoc2 = this.tagLocations[i2]
+        if (highlightLoc[1] < tagLoc2[0]) {
+          break
+        } else {
+          const tag2 = this.originalContent.substring(
+            tagLoc2[0] + tagLoc2[2],
+            tagLoc2[0] + tagLoc2[2] + tagLoc2[1]
+          )
+          if (tag2.startsWith('<' + tagType)) {
+            requiredTagNumber++
+          } else if (tag2.startsWith('</' + tagType)) {
+            requiredTagCount++
+          }
+          if (requiredTagNumber === requiredTagCount) {
+            included = true
+            break
+          }
+        }
+      }
+    }
+
+    return included
+  }
+
   adjustLoc(highlightIdPattern, highlightIndex, highlightClass) {
-    const { highlights } = this
-    const highlightLoc = highlights[highlightIndex].loc
+    const highlightLoc = this.highlights[highlightIndex].loc
     const locInc = [0, 0]
 
     // step 1: check locations of tags
-    const tagLocations = this.tagLocations
-    const length = tagLocations.length
+    const length = this.tagLocations.length
     for (let i = 0; i < length; i++) {
-      const tagLoc = tagLocations[i]
+      const tagLoc = this.tagLocations[i]
+      // start end tag
       if (highlightLoc[1] < tagLoc[0]) {
         break
-      } else if (highlightLoc[1] === tagLoc[0]) {
+      }
+      // start end&tag
+      else if (highlightLoc[1] === tagLoc[0]) {
         const tag = this.originalContent.substring(
           tagLoc[0] + tagLoc[2],
           tagLoc[0] + tagLoc[2] + tagLoc[1]
         )
-        if (tag.startsWith('</')) {
+        if (
+          !tag.endsWith('/>') &&
+          tag.startsWith('</') &&
+          !blockElements.includes(tag.split('</')[1].split('>')[0]) &&
+          this.includeRequiredTag(i, highlightLoc, tag)
+        ) {
           locInc[1] += tagLoc[1]
         }
-      } else if (highlightLoc[1] > tagLoc[0]) {
+      }
+      // start tag end
+      else if (highlightLoc[1] > tagLoc[0]) {
         locInc[1] += tagLoc[1]
+        // start&tag end
         if (highlightLoc[0] === tagLoc[0]) {
           const tag = this.originalContent.substring(
             tagLoc[0] + tagLoc[2],
             tagLoc[0] + tagLoc[2] + tagLoc[1]
           )
-          if (tag.startsWith('</')) {
+          if (
+            tag.startsWith('</') ||
+            tag.endsWith('/>') ||
+            blockElements.includes(
+              tag
+                .split(' ')[0]
+                .split('<')[1]
+                .split('>')[0]
+            ) ||
+            !this.includeRequiredTag(i, highlightLoc, tag)
+          ) {
             locInc[0] += tagLoc[1]
-          } else {
-            let included = false
-
-            let requiredCloseTagNumber = 1
-            let closeTagCount = 0
-            for (let i2 = i + 1; i2 < tagLocations.length; i2++) {
-              const tagLoc2 = tagLocations[i2]
-              if (highlightLoc[1] <= tagLoc2[0]) {
-                break
-              } else {
-                const tag2 = this.originalContent.substring(
-                  tagLoc2[0] + tagLoc2[2],
-                  tagLoc2[0] + tagLoc2[2] + tagLoc2[1]
-                )
-                const tagType = tag
-                  .split(' ')[0]
-                  .split('<')[1]
-                  .split('>')[0]
-                if (tag2.startsWith('<' + tagType)) {
-                  requiredCloseTagNumber++
-                } else if (tag2.startsWith('</' + tagType)) {
-                  closeTagCount++
-                }
-                if (
-                  requiredCloseTagNumber === closeTagCount &&
-                  !blockElements.includes(tagType)
-                ) {
-                  included = true
-                  break
-                }
-              }
-            }
-
-            if (!included) {
-              locInc[0] += tagLoc[1]
-            }
           }
-        } else if (highlightLoc[0] > tagLoc[0]) {
+        }
+        // tag start end
+        else if (highlightLoc[0] > tagLoc[0]) {
           locInc[0] += tagLoc[1]
         }
       }
     }
 
     // step 2: check locations of other highlights
-    for (let i = 0; i < highlights.length; i++) {
-      const highlight = highlights[i]
+    for (let i = 0; i < this.highlights.length; i++) {
+      const highlight = this.highlights[i]
       if (highlight.highlighted) {
         const openTagLength = TextAnnotator.getOpenTagLength(
           highlightIdPattern,
