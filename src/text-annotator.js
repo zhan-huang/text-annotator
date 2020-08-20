@@ -710,8 +710,12 @@ class TextAnnotator {
     }
 
     // step 2: check locations of other highlights
+    // all span (no blocks)
+    // stored in a different array than tags
+    // can intersect
     for (let i = 0; i < this.highlights.length; i++) {
       const highlight = this.highlights[i]
+      // only check the highlighted
       if (highlight.highlighted) {
         const openTagLength = TextAnnotator.getOpenTagLength(
           highlightIdPattern,
@@ -723,7 +727,9 @@ class TextAnnotator {
         if (highlightLoc[0] >= loc[1]) {
           locInc[0] += openTagLength + closeTagLength
           locInc[1] += openTagLength + closeTagLength
-        } else if (
+        }
+        // syntactical correct but semantical incorrect
+        else if (
           highlightLoc[0] < loc[1] &&
           highlightLoc[0] > loc[0] &&
           highlightLoc[1] > loc[1]
@@ -732,7 +738,9 @@ class TextAnnotator {
           locInc[1] += openTagLength + closeTagLength
         } else if (highlightLoc[0] <= loc[0] && highlightLoc[1] >= loc[1]) {
           locInc[1] += openTagLength + closeTagLength
-        } else if (
+        }
+        // syntactical correct but semantical incorrect
+        else if (
           highlightLoc[0] < loc[0] &&
           highlightLoc[1] > loc[0] &&
           highlightLoc[1] < loc[1]
