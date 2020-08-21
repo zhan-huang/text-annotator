@@ -593,7 +593,7 @@ class TextAnnotator {
   // block elements are only used to check in the = condition for now
   includeRequiredTag(i, highlightLoc, tag) {
     const isCloseTag = tag.startsWith('</')
-    const tagType = isCloseTag
+    const tagName = isCloseTag
       ? tag.split('</')[1].split('>')[0]
       : tag
           .split(' ')[0]
@@ -615,9 +615,9 @@ class TextAnnotator {
             tagLoc2[0] + tagLoc2[2],
             tagLoc2[0] + tagLoc2[2] + tagLoc2[1]
           )
-          if (tag2.startsWith('</' + tagType)) {
+          if (tag2.startsWith('</' + tagName)) {
             requiredTagNumber++
-          } else if (tag2.startsWith('<' + tagType)) {
+          } else if (tag2.startsWith('<' + tagName)) {
             requiredTagCount++
           }
           if (requiredTagNumber === requiredTagCount) {
@@ -636,9 +636,9 @@ class TextAnnotator {
             tagLoc2[0] + tagLoc2[2],
             tagLoc2[0] + tagLoc2[2] + tagLoc2[1]
           )
-          if (tag2.startsWith('<' + tagType)) {
+          if (tag2.startsWith('<' + tagName)) {
             requiredTagNumber++
-          } else if (tag2.startsWith('</' + tagType)) {
+          } else if (tag2.startsWith('</' + tagName)) {
             requiredTagCount++
           }
           if (requiredTagNumber === requiredTagCount) {
@@ -752,8 +752,58 @@ class TextAnnotator {
         }
       }
     }
-
+    this.testMethod(highlightLoc, locInc)
     return [highlightLoc[0] + locInc[0], highlightLoc[1] + locInc[1]]
+  }
+
+  testMethod(highlightLoc, locInc) {
+    const tagsInside = []
+    for (let i = 0; i < this.tagLocations.length; i++) {
+      const tagLoc = this.tagLocations[i]
+      if (tagLoc[0] >= highlightLoc[0] && tagLoc[0] <= highlightLoc[1]) {
+        const tag = this.originalContent.substring(
+          tagLoc[0] + tagLoc[2],
+          tagLoc[0] + tagLoc[2] + tagLoc[1]
+        )
+        if (!tag.endsWith('/>')) {
+          tagsInside.push({
+            name: tag.startsWith('</')
+              ? tag.split('</')[1].split('>')[0]
+              : tag
+                  .split(' ')[0]
+                  .split('<')[1]
+                  .split('>')[0],
+            type: tag.startsWith('</') ? 0 : 1,
+            loc: tagLoc
+          })
+        }
+      }
+    }
+
+    for (let i = 0; i < tagsInside.length; i++) {
+      const tag = tagsInside[i]
+      if (tag.type === 1) {
+        let requiredTagNumber = 1
+        let requiredTagCount = 0
+        for (let i2 = i + 1; i2 < tagsInside.length; i2++) {
+          const tag2 = tagsInside[i2]
+          if (tag2.type === 1 && tag2.name === tag.name) {
+            requiredTagNumber++
+          } else if (tag2.type === 0 && tag2.name === tag.name) {
+            requiredTagCount++
+          }
+        }
+        if (requiredTagNumber > requiredTagCount) {
+          // eslint-disable-next-line
+          console.log([
+            highlightLoc[0] + locInc[0],
+            tag.loc[0] + tag.loc[2],
+            highlightLoc[1] + locInc[1]
+          ])
+          break
+        }
+      }
+    }
   }
 
   static createOpenTag(highlightIdPattern, highlightIndex, highlightClass) {
