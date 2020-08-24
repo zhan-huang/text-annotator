@@ -144,7 +144,7 @@ const closeTag = '</span>'
 //   })
 // })
 
-test('ec2', () => {
+test('t1', () => {
   const options = contentObj()
   const annotator = new TextAnnotator(options)
   const highlightIndex = annotator.search('a frontend')
@@ -156,5 +156,23 @@ test('ec2', () => {
   )
   expect(newContent).toBe(
     `"I am <b><i>Zhan Huang</i></b>, ${openTag}a <b>frontend${closeTag} developer</b> in EMBL-EBI. I like food and sports. My favourite food is udon noodles." - Zhan Huang`
+  )
+})
+
+test('t2', () => {
+  const options = {
+    content:
+      '<p>Today is sunny. Tomorrow is rainy.</p><p>Santosh and I go shopping.</p>'
+  }
+  const annotator = new TextAnnotator(options)
+  const highlightIndex = annotator.search('Tomorrow is rainy.Santosh and I')
+  const newContent = annotator.highlight(highlightIndex, options)
+  const openTag = TextAnnotator.createOpenTag(
+    'highlight-',
+    highlightIndex,
+    'highlight'
+  )
+  expect(newContent).toBe(
+    `<p>Today is sunny. ${openTag}Tomorrow is rainy.</p><p>Santosh and I${closeTag} go shopping.</p>`
   )
 })

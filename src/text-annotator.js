@@ -782,6 +782,7 @@ class TextAnnotator {
 
     for (let i = 0; i < tagsInside.length; i++) {
       const tag = tagsInside[i]
+      // open tag
       if (tag.type === 1) {
         let requiredTagNumber = 1
         let requiredTagCount = 0
@@ -796,11 +797,32 @@ class TextAnnotator {
         if (requiredTagNumber > requiredTagCount) {
           // eslint-disable-next-line
           console.log([
+            tag,
             highlightLoc[0] + locInc[0],
             tag.loc[0] + tag.loc[2],
             highlightLoc[1] + locInc[1]
           ])
           break
+        }
+      } else if (tag.type === 0) {
+        let requiredTagNumber = 1
+        let requiredTagCount = 0
+        for (let i2 = 0; i2 < i; i++) {
+          const tag2 = tagsInside[i2]
+          if (tag2.type === 0 && tag2.name === tag.name) {
+            requiredTagNumber++
+          } else if (tag2.type === 1 && tag2.name === tag.name) {
+            requiredTagCount++
+          }
+        }
+        if (requiredTagNumber > requiredTagCount) {
+          // eslint-disable-next-line
+          console.log([
+            tag,
+            highlightLoc[0] + locInc[0],
+            tag.loc[0] + tag.loc[2],
+            highlightLoc[1] + locInc[1]
+          ])
         }
       }
     }
