@@ -593,7 +593,7 @@ class TextAnnotator {
   // block elements are only used to check in the = condition for now
   includeRequiredTag(i, highlightLoc, tag) {
     const isCloseTag = tag.startsWith('</')
-    const tagType = isCloseTag
+    const tagName = isCloseTag
       ? tag.split('</')[1].split('>')[0]
       : tag
           .split(' ')[0]
@@ -615,9 +615,9 @@ class TextAnnotator {
             tagLoc2[0] + tagLoc2[2],
             tagLoc2[0] + tagLoc2[2] + tagLoc2[1]
           )
-          if (tag2.startsWith('</' + tagType)) {
+          if (tag2.startsWith('</' + tagName)) {
             requiredTagNumber++
-          } else if (tag2.startsWith('<' + tagType)) {
+          } else if (tag2.startsWith('<' + tagName)) {
             requiredTagCount++
           }
           if (requiredTagNumber === requiredTagCount) {
@@ -636,9 +636,9 @@ class TextAnnotator {
             tagLoc2[0] + tagLoc2[2],
             tagLoc2[0] + tagLoc2[2] + tagLoc2[1]
           )
-          if (tag2.startsWith('<' + tagType)) {
+          if (tag2.startsWith('<' + tagName)) {
             requiredTagNumber++
-          } else if (tag2.startsWith('</' + tagType)) {
+          } else if (tag2.startsWith('</' + tagName)) {
             requiredTagCount++
           }
           if (requiredTagNumber === requiredTagCount) {
