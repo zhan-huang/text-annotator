@@ -758,6 +758,7 @@ class TextAnnotator {
 
   testMethod(highlightLoc, locInc) {
     const tagsInside = []
+
     for (let i = 0; i < this.tagLocations.length; i++) {
       const tagLoc = this.tagLocations[i]
       if (tagLoc[0] >= highlightLoc[0] && tagLoc[0] <= highlightLoc[1]) {
@@ -765,6 +766,7 @@ class TextAnnotator {
           tagLoc[0] + tagLoc[2],
           tagLoc[0] + tagLoc[2] + tagLoc[1]
         )
+        // self close tag is not considered in later adjustment
         if (!tag.endsWith('/>')) {
           tagsInside.push({
             name: tag.startsWith('</')
@@ -773,6 +775,7 @@ class TextAnnotator {
                   .split(' ')[0]
                   .split('<')[1]
                   .split('>')[0],
+            // 0 is close tag; 1 is open tag
             type: tag.startsWith('</') ? 0 : 1,
             loc: tagLoc
           })
@@ -782,43 +785,47 @@ class TextAnnotator {
 
     for (let i = 0; i < tagsInside.length; i++) {
       const tag = tagsInside[i]
-      // open tag
+      // if open tag
       if (tag.type === 1) {
         let requiredTagNumber = 1
         let requiredTagCount = 0
         for (let i2 = i + 1; i2 < tagsInside.length; i2++) {
           const tag2 = tagsInside[i2]
-          if (tag2.type === 1 && tag2.name === tag.name) {
-            requiredTagNumber++
-          } else if (tag2.type === 0 && tag2.name === tag.name) {
-            requiredTagCount++
+          if (tag2.name === tag.name) {
+            if (tag2.type === 1) {
+              requiredTagNumber++
+            } else if (tag2.type === 0) {
+              requiredTagCount++
+            }
           }
         }
         if (requiredTagNumber > requiredTagCount) {
           // eslint-disable-next-line
           console.log([
-            tag,
             highlightLoc[0] + locInc[0],
-            tag.loc[0] + tag.loc[2],
+            tag.loc[0] + tag.loc[2] + tag.loc[1],
             highlightLoc[1] + locInc[1]
           ])
           break
         }
-      } else if (tag.type === 0) {
+      }
+      // if close tag
+      else if (tag.type === 0) {
         let requiredTagNumber = 1
         let requiredTagCount = 0
         for (let i2 = 0; i2 < i; i++) {
           const tag2 = tagsInside[i2]
-          if (tag2.type === 0 && tag2.name === tag.name) {
-            requiredTagNumber++
-          } else if (tag2.type === 1 && tag2.name === tag.name) {
-            requiredTagCount++
+          if (tag2.name === tag.name) {
+            if (tag2.type === 0) {
+              requiredTagNumber++
+            } else if (tag2.type === 0) {
+              requiredTagCount++
+            }
           }
         }
         if (requiredTagNumber > requiredTagCount) {
           // eslint-disable-next-line
           console.log([
-            tag,
             highlightLoc[0] + locInc[0],
             tag.loc[0] + tag.loc[2],
             highlightLoc[1] + locInc[1]
