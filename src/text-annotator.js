@@ -700,7 +700,7 @@ class TextAnnotator {
             tagLoc[0] + tagLoc[2],
             tagLoc[0] + tagLoc[2] + tagLoc[1]
           )
-          // if self or end tag or block element, add right to the tag
+          // if self close tag or end tag or block element or not include the required close tag, add right to the tag
           if (
             tag.startsWith('</') ||
             tag.endsWith('/>') ||
