@@ -1,9 +1,11 @@
 import getSentences from './ext/sbd'
 
 // used to distinguish between browser and Node.js environments
+// is it possible to relax so as to allow jsdom
 const isBrowser =
   typeof window !== 'undefined' && typeof window.document !== 'undefined'
 
+// div inside span is a bad idea
 const blockElements = [
   'address',
   'article',
@@ -63,7 +65,7 @@ class TextAnnotator {
     this.tagLocations = []
     // sentences are used in sentence-based fuzzy search
     this.sentences = []
-    // one highlight can have more than one location because of the potential issue in tag insertion***
+    // future work: one highlight can have more than one location because of the potential issue in tag insertion
     this.highlights = []
 
     if (isHTML) {
@@ -102,6 +104,7 @@ class TextAnnotator {
       return highlightIndex
     }
 
+    // experimental feature
     if (fuzzySearchOptions) {
       highlightIndex = this.fuzzySearch(
         prefix,
@@ -114,6 +117,7 @@ class TextAnnotator {
       }
     }
 
+    // experimental feature
     // eager search only works in (particular) browsers
     if (isBrowser && eagerSearchOptions) {
       highlightIndex = this.eagerSearch(
@@ -130,6 +134,7 @@ class TextAnnotator {
     return highlightIndex
   }
 
+  // experimental feature
   // only support direct search for now
   searchAll(str, options = {}) {
     const highlightIndexes = []
@@ -186,6 +191,7 @@ class TextAnnotator {
     }
   }
 
+  // experimental feature
   highlightAll(highlightIndexes, options = {}) {
     // either containerId or content is required
     const { containerId, content, returnContent } = options
@@ -212,6 +218,7 @@ class TextAnnotator {
   searchAndHighlight(str, options) {
     const highlightIndex = this.search(str, options.searchOptions)
     if (highlightIndex !== -1) {
+      // content is undefined if containerId and returnContent falsy
       return {
         highlightIndex,
         content: this.highlight(highlightIndex, options.highlightOptions)
@@ -239,6 +246,7 @@ class TextAnnotator {
       }
 
       let newContent = content
+      // need to change when one annotation => more than one highlight
       const loc = this.adjustLoc(
         highlightIdPattern,
         highlightIndex,
@@ -589,8 +597,8 @@ class TextAnnotator {
     return highlightIndex
   }
 
-  // further improvement when one annotation binds with more than one highlight***
-  // block elements are only used to check in the = condition for now
+  // future work: further improvement when one annotation binds with more than one highlight
+  // includeRequiredTag used in = condition only
   includeRequiredTag(i, highlightLoc, tag) {
     const isCloseTag = tag.startsWith('</')
     const tagName = isCloseTag
@@ -604,7 +612,8 @@ class TextAnnotator {
 
     let requiredTagNumber = 1
     let requiredTagCount = 0
-    // outer
+    // if both the start tag and the end tag are at the borders, place the tags outside the borders
+    // if the close tag is at the border, check backwards until the start of the highlight
     if (isCloseTag) {
       for (let i2 = i - 1; i2 >= 0; i2--) {
         const tagLoc2 = this.tagLocations[i2]
@@ -626,7 +635,9 @@ class TextAnnotator {
           }
         }
       }
-    } else {
+    }
+    // if the start tag is at the border, check forwards until the end of the highlight
+    else {
       for (let i2 = i + 1; i2 < this.tagLocations.length; i2++) {
         const tagLoc2 = this.tagLocations[i2]
         if (highlightLoc[1] < tagLoc2[0]) {
@@ -670,6 +681,7 @@ class TextAnnotator {
           tagLoc[0] + tagLoc[2],
           tagLoc[0] + tagLoc[2] + tagLoc[1]
         )
+        // if end tag, not block element and include the required close tag, add right to the tag
         if (
           !tag.endsWith('/>') &&
           tag.startsWith('</') &&
@@ -688,6 +700,7 @@ class TextAnnotator {
             tagLoc[0] + tagLoc[2],
             tagLoc[0] + tagLoc[2] + tagLoc[1]
           )
+          // if self or end tag or block element, add right to the tag
           if (
             tag.startsWith('</') ||
             tag.endsWith('/>') ||
@@ -804,7 +817,7 @@ class TextAnnotator {
       abbreviations: null
     }
     return getSentences(text, options).map(raw => {
-      // can tokenizer return location directly***
+      // future work: can tokenizer return location directly
       const index = text.indexOf(raw)
       return { raw, index }
     })
@@ -825,7 +838,7 @@ class TextAnnotator {
       : TextAnnotator.getSimilarity(str, substr, caseSensitive)
     if (similarity >= threshold) {
       // step 1: derive best substr
-      // /s may be better***
+      // future work: /s may be better
       const words = str.split(' ')
       while (words.length) {
         const firstWord = words.shift()
