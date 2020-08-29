@@ -10,7 +10,9 @@ var _sbd = _interopRequireDefault(require("./ext/sbd"));
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 // used to distinguish between browser and Node.js environments
-const isBrowser = typeof window !== 'undefined' && typeof window.document !== 'undefined';
+// is it possible to relax so as to allow jsdom
+const isBrowser = typeof window !== 'undefined' && typeof window.document !== 'undefined'; // div inside span is a bad idea
+
 const blockElements = ['address', 'article', 'aside', 'blockquote', 'canvas', 'dd', 'div', 'dl', 'dt', 'fieldset', 'figcaption', 'figure', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hgroup', 'hr', 'li', 'main', 'nav', 'noscript', 'ol', 'output', 'p', 'pre', 'section', 'table', 'tfoot', 'ul', 'video'];
 
 class TextAnnotator {
@@ -27,7 +29,7 @@ class TextAnnotator {
     this.stripedHTML = '';
     this.tagLocations = []; // sentences are used in sentence-based fuzzy search
 
-    this.sentences = []; // one highlight can have more than one location because of the potential issue in tag insertion***
+    this.sentences = []; // future work: one highlight can have more than one location because of the potential issue in tag insertion
 
     this.highlights = [];
 
@@ -59,7 +61,8 @@ class TextAnnotator {
 
     if (highlightIndex !== -1) {
       return highlightIndex;
-    }
+    } // experimental feature
+
 
     if (fuzzySearchOptions) {
       highlightIndex = this.fuzzySearch(prefix, str, postfix, fuzzySearchOptions);
@@ -67,7 +70,8 @@ class TextAnnotator {
       if (highlightIndex !== -1) {
         return highlightIndex;
       }
-    } // eager search only works in (particular) browsers
+    } // experimental feature
+    // eager search only works in (particular) browsers
 
 
     if (isBrowser && eagerSearchOptions) {
@@ -79,7 +83,8 @@ class TextAnnotator {
     }
 
     return highlightIndex;
-  } // only support direct search for now
+  } // experimental feature
+  // only support direct search for now
 
 
   searchAll(str, options = {}) {
@@ -123,7 +128,8 @@ class TextAnnotator {
     } else {
       return newContent;
     }
-  }
+  } // experimental feature
+
 
   highlightAll(highlightIndexes, options = {}) {
     // either containerId or content is required
@@ -153,6 +159,7 @@ class TextAnnotator {
     const highlightIndex = this.search(str, options.searchOptions);
 
     if (highlightIndex !== -1) {
+      // content is undefined if containerId and returnContent falsy
       return {
         highlightIndex,
         content: this.highlight(highlightIndex, options.highlightOptions)
@@ -178,7 +185,8 @@ class TextAnnotator {
         content = document.getElementById(containerId).innerHTML;
       }
 
-      let newContent = content;
+      let newContent = content; // need to change when one annotation => more than one highlight
+
       const loc = this.adjustLoc(highlightIdPattern, highlightIndex, highlightClass);
       const openTagLength = TextAnnotator.getOpenTagLength(highlightIdPattern, highlightIndex, highlightClass);
       const substr1 = newContent.substring(loc[0], loc[1] + openTagLength + TextAnnotator.getCloseTagLength());
@@ -483,16 +491,17 @@ class TextAnnotator {
       }
 
     return highlightIndex;
-  } // further improvement when one annotation binds with more than one highlight***
-  // block elements are only used to check in the = condition for now
+  } // future work: further improvement when one annotation binds with more than one highlight
+  // includeRequiredTag used in = condition only
 
 
   includeRequiredTag(i, highlightLoc, tag) {
     const isCloseTag = tag.startsWith('</');
-    const tagType = isCloseTag ? tag.split('</')[1].split('>')[0] : tag.split(' ')[0].split('<')[1].split('>')[0];
+    const tagName = isCloseTag ? tag.split('</')[1].split('>')[0] : tag.split(' ')[0].split('<')[1].split('>')[0];
     let included = false;
     let requiredTagNumber = 1;
-    let requiredTagCount = 0; // outer
+    let requiredTagCount = 0; // if both the start tag and the end tag are at the borders, place the tags outside the borders
+    // if the close tag is at the border, check backwards until the start of the highlight
 
     if (isCloseTag) {
       for (let i2 = i - 1; i2 >= 0; i2--) {
@@ -503,9 +512,9 @@ class TextAnnotator {
         } else {
           const tag2 = this.originalContent.substring(tagLoc2[0] + tagLoc2[2], tagLoc2[0] + tagLoc2[2] + tagLoc2[1]);
 
-          if (tag2.startsWith('</' + tagType)) {
+          if (tag2.startsWith('</' + tagName)) {
             requiredTagNumber++;
-          } else if (tag2.startsWith('<' + tagType)) {
+          } else if (tag2.startsWith('<' + tagName)) {
             requiredTagCount++;
           }
 
@@ -515,28 +524,29 @@ class TextAnnotator {
           }
         }
       }
-    } else {
-      for (let i2 = i + 1; i2 < this.tagLocations.length; i2++) {
-        const tagLoc2 = this.tagLocations[i2];
+    } // if the start tag is at the border, check forwards until the end of the highlight
+    else {
+        for (let i2 = i + 1; i2 < this.tagLocations.length; i2++) {
+          const tagLoc2 = this.tagLocations[i2];
 
-        if (highlightLoc[1] < tagLoc2[0]) {
-          break;
-        } else {
-          const tag2 = this.originalContent.substring(tagLoc2[0] + tagLoc2[2], tagLoc2[0] + tagLoc2[2] + tagLoc2[1]);
-
-          if (tag2.startsWith('<' + tagType)) {
-            requiredTagNumber++;
-          } else if (tag2.startsWith('</' + tagType)) {
-            requiredTagCount++;
-          }
-
-          if (requiredTagNumber === requiredTagCount) {
-            included = true;
+          if (highlightLoc[1] < tagLoc2[0]) {
             break;
+          } else {
+            const tag2 = this.originalContent.substring(tagLoc2[0] + tagLoc2[2], tagLoc2[0] + tagLoc2[2] + tagLoc2[1]);
+
+            if (tag2.startsWith('<' + tagName)) {
+              requiredTagNumber++;
+            } else if (tag2.startsWith('</' + tagName)) {
+              requiredTagCount++;
+            }
+
+            if (requiredTagNumber === requiredTagCount) {
+              included = true;
+              break;
+            }
           }
         }
       }
-    }
 
     return included;
   }
@@ -554,7 +564,7 @@ class TextAnnotator {
         break;
       } // start end&tag
       else if (highlightLoc[1] === tagLoc[0]) {
-          const tag = this.originalContent.substring(tagLoc[0] + tagLoc[2], tagLoc[0] + tagLoc[2] + tagLoc[1]);
+          const tag = this.originalContent.substring(tagLoc[0] + tagLoc[2], tagLoc[0] + tagLoc[2] + tagLoc[1]); // if end tag, not block element and include the required close tag, add right to the tag
 
           if (!tag.endsWith('/>') && tag.startsWith('</') && !blockElements.includes(tag.split('</')[1].split('>')[0]) && this.includeRequiredTag(i, highlightLoc, tag)) {
             locInc[1] += tagLoc[1];
@@ -564,7 +574,7 @@ class TextAnnotator {
             locInc[1] += tagLoc[1]; // start&tag end
 
             if (highlightLoc[0] === tagLoc[0]) {
-              const tag = this.originalContent.substring(tagLoc[0] + tagLoc[2], tagLoc[0] + tagLoc[2] + tagLoc[1]);
+              const tag = this.originalContent.substring(tagLoc[0] + tagLoc[2], tagLoc[0] + tagLoc[2] + tagLoc[1]); // if self close tag or end tag or block element or not include the required close tag, add right to the tag
 
               if (tag.startsWith('</') || tag.endsWith('/>') || blockElements.includes(tag.split(' ')[0].split('<')[1].split('>')[0]) || !this.includeRequiredTag(i, highlightLoc, tag)) {
                 locInc[0] += tagLoc[1];
@@ -575,10 +585,13 @@ class TextAnnotator {
               }
           }
     } // step 2: check locations of other highlights
+    // all span (no blocks)
+    // stored in a different array than tags
+    // can intersect
 
 
     for (let i = 0; i < this.highlights.length; i++) {
-      const highlight = this.highlights[i];
+      const highlight = this.highlights[i]; // only check the highlighted
 
       if (highlight.highlighted) {
         const openTagLength = TextAnnotator.getOpenTagLength(highlightIdPattern, i, highlightClass);
@@ -588,17 +601,19 @@ class TextAnnotator {
         if (highlightLoc[0] >= loc[1]) {
           locInc[0] += openTagLength + closeTagLength;
           locInc[1] += openTagLength + closeTagLength;
-        } else if (highlightLoc[0] < loc[1] && highlightLoc[0] > loc[0] && highlightLoc[1] > loc[1]) {
-          locInc[0] += openTagLength;
-          locInc[1] += openTagLength + closeTagLength;
-        } else if (highlightLoc[0] <= loc[0] && highlightLoc[1] >= loc[1]) {
-          locInc[1] += openTagLength + closeTagLength;
-        } else if (highlightLoc[0] < loc[0] && highlightLoc[1] > loc[0] && highlightLoc[1] < loc[1]) {
-          locInc[1] += openTagLength;
-        } else if (highlightLoc[0] >= loc[0] && highlightLoc[1] <= loc[1]) {
-          locInc[0] += openTagLength;
-          locInc[1] += openTagLength;
-        }
+        } // syntactical correct but semantical incorrect
+        else if (highlightLoc[0] < loc[1] && highlightLoc[0] > loc[0] && highlightLoc[1] > loc[1]) {
+            locInc[0] += openTagLength;
+            locInc[1] += openTagLength + closeTagLength;
+          } else if (highlightLoc[0] <= loc[0] && highlightLoc[1] >= loc[1]) {
+            locInc[1] += openTagLength + closeTagLength;
+          } // syntactical correct but semantical incorrect
+          else if (highlightLoc[0] < loc[0] && highlightLoc[1] > loc[0] && highlightLoc[1] < loc[1]) {
+              locInc[1] += openTagLength;
+            } else if (highlightLoc[0] >= loc[0] && highlightLoc[1] <= loc[1]) {
+              locInc[0] += openTagLength;
+              locInc[1] += openTagLength;
+            }
       }
     }
 
@@ -654,7 +669,7 @@ class TextAnnotator {
       abbreviations: null
     };
     return (0, _sbd.default)(text, options).map(raw => {
-      // can tokenizer return location directly***
+      // future work: can tokenizer return location directly
       const index = text.indexOf(raw);
       return {
         raw,
@@ -669,7 +684,7 @@ class TextAnnotator {
 
     if (similarity >= threshold) {
       // step 1: derive best substr
-      // /s may be better***
+      // future work: /s may be better
       const words = str.split(' ');
 
       while (words.length) {
