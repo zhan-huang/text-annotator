@@ -321,7 +321,18 @@ class TextAnnotator {
 
     let highlightIndex = -1
     const index = text.indexOf(strWithFixes, offset)
-    if (index !== -1) {
+    if (index === -1) {
+      const Entities = require('html-entities').AllHtmlEntities
+      const entities = new Entities()
+      const encodedStrWithFixes = entities.encode(strWithFixes)
+      const index = text.indexOf(encodedStrWithFixes, offset)
+      if (index !== -1) {
+        const loc = []
+        loc[0] = index + entities.encode(prefix).length
+        loc[1] = loc[0] + entities.encode(str).length
+        highlightIndex = this.highlights.push({ loc }) - 1
+      }
+    } else {
       const loc = []
       loc[0] = index + prefix.length
       loc[1] = loc[0] + str.length
