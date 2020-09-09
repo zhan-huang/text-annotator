@@ -241,7 +241,7 @@ class TextAnnotator {
     }
 
     let highlightIndex = -1;
-    const index = text.indexOf(strWithFixes, offset); // experiment feature: if the text to be searched does not work, try to encode it
+    const index = text.indexOf(strWithFixes, offset); // experimental feature: if the text to be searched does not work, try to encode it
 
     if (index === -1) {
       const Entities = require('html-entities').AllHtmlEntities;
