@@ -37,6 +37,7 @@ class TextAnnotator {
       this.stripAndStoreHTMLTags();
     }
   } // lastHighlightIndex can be within options; it is currently used by searchAll
+  // the order of directSearch => fuzzy search => eager search is tailored for specific feature, it is now the default way of search but it can be customized via options. More customizations can be done by composing functions
 
 
   search(str, options = {}, lastHighlightIndex) {
@@ -224,7 +225,9 @@ class TextAnnotator {
   }
 
   directSearch(prefix, str, postfix, directSearchOptions = {}, lastHighlightIndex) {
-    const caseSensitive = directSearchOptions.caseSensitive;
+    const caseSensitive = directSearchOptions.caseSensitive; // experimental option; used for specific feature
+
+    const encode = directSearchOptions.encode;
     let strWithFixes = prefix + str + postfix;
     let text = this.isHTML ? this.stripedHTML : this.originalContent;
 
@@ -243,7 +246,7 @@ class TextAnnotator {
     let highlightIndex = -1;
     const index = text.indexOf(strWithFixes, offset); // experimental feature: if the text to be searched does not work, try to encode it
 
-    if (index === -1) {
+    if (encode && index === -1) {
       const Entities = require('html-entities').AllHtmlEntities;
 
       const entities = new Entities();
