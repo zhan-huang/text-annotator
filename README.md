@@ -1,5 +1,5 @@
 # text-annotator
-A JavaScript library for annotating plain text in the HTML
+A JavaScript library for annotating plain text in the HTML<br />
 The annotation process is:
 1. **Search**: Search for a piece of plain text in the HTML; if finding it, store its location identified by an index and then return the index for later annotation
 2. **Annotate**: Annotate the found text given its index
@@ -69,15 +69,15 @@ annotator.unhighlight(highlightIndex)
 | content | string | The HTML string within which a piece of text can be annotated. Either *containerId* or *content* needs to be specified; if both specified, *containerId* is used. |
 
 ## Search options
-*search(str, **options**)*
+*search(str, **options**)*<br />
 *searchAll(str, **options**)*
 | Prop | Type | Description |
 | ---- | ---- | ---- |
 | trim | boolean | Whether to trim the piece of text to be annotated. Default is *true*. |
 
 ## Annotate options
-*highlight(highlightIndex, **options**)*
-*highlightAll(highlightIndexes, **options**)*
+*highlight(highlightIndex, **options**)*<br />
+*highlightAll(highlightIndexes, **options**)*<br />
 *unhighlight(highlightIndex, **options**)*
 | Prop | Type | Description |
 | ---- | ---- | ---- |
@@ -88,8 +88,7 @@ annotator.unhighlight(highlightIndex)
 | returnContent | boolean | Whether to return the HTML string after annotation. Note that *content* and *returnContent* can be used together to annotate multiple pieces of text. Default is *false*. |
 
 ## searchAndHighlight options
-*searchAndHighlight(str, **options**)*, where
-*options = { searchOptions, highlightOptions }*, *searchOptions* and *highlightOptions* are described above.
+*searchAndHighlight(str, **options**)*, where *options = { searchOptions, highlightOptions }*, *searchOptions* and *highlightOptions* are described above.
 
 ## Examples from Europe PMC
 text-annotator has been widely used in [Europe PMC](https://europepmc.org "Europe PMC"), an open science platform that enables access to a worldwide collection of life science publications. Here is a list of examples:
