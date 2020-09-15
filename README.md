@@ -6,12 +6,12 @@ The annotation process is:
 It can be seen that in order to annotate a piece of text, two steps, **search** and **annotate**, are taken. The idea of decomposing the annotation process into the two steps is to allow more flexibility, e.g., the user can search for all pieces of text first, and then annotate (some of) them later when required (e.g., when clicking a button). There is also a function combining the two steps, as can be seen in the Basic usage section.
 
 ## Import
-1. install it via npm
+### install it via npm
 `npm install --save text-annotator`
 ```javascript
 import TextAnnotator from 'text-annotator'
 ```
-2. include it into the head tag
+### include it into the head tag
 ```
 <script src="public/js/text-annotator.min.js"></script>
 ```
