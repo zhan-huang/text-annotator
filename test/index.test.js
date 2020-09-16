@@ -2,18 +2,14 @@ import TextAnnotator from '../src/text-annotator'
 
 const content =
   '"I am <b><i>Zhan Huang</i></b>, a <b>frontend developer</b> in EMBL-EBI. I like food and sports. My favourite food is udon noodles." - Zhan Huang'
-const contentObj = () => {
-  return { content }
-}
 
 const closeTag = '</span>'
 
 describe('test main scenarios', () => {
   test('test direct search', () => {
-    const options = contentObj()
-    const annotator = new TextAnnotator(options)
+    const annotator = new TextAnnotator({ content })
     const highlightIndex = annotator.search('I')
-    const newContent = annotator.highlight(highlightIndex, options)
+    const newContent = annotator.highlight(highlightIndex)
     const openTag = TextAnnotator.createOpenTag(
       'highlight-',
       highlightIndex,
@@ -25,10 +21,9 @@ describe('test main scenarios', () => {
   })
 
   test('test search all', () => {
-    const options = contentObj()
-    const annotator = new TextAnnotator(options)
+    const annotator = new TextAnnotator({ content })
     const highlightIndexes = annotator.searchAll('Zhan Huang')
-    const newContent = annotator.highlightAll(highlightIndexes, options)
+    const newContent = annotator.highlightAll(highlightIndexes)
     const openTag1 = TextAnnotator.createOpenTag(
       'highlight-',
       highlightIndexes[0],
@@ -45,14 +40,13 @@ describe('test main scenarios', () => {
   })
 
   test('test token-based fuzzy search', () => {
-    const options = contentObj()
-    const annotator = new TextAnnotator(options)
+    const annotator = new TextAnnotator({ content })
     const highlightIndex = annotator.search('frontend developer', {
       prefix: 'a ',
       postfix: ' in EMBLEBI',
       fuzzySearchOptions: {}
     })
-    const newContent = annotator.highlight(highlightIndex, options)
+    const newContent = annotator.highlight(highlightIndex)
     const openTag = TextAnnotator.createOpenTag(
       'highlight-',
       highlightIndex,
@@ -64,12 +58,11 @@ describe('test main scenarios', () => {
   })
 
   test('test sentence-based fuzzy search', () => {
-    const options = contentObj()
-    const annotator = new TextAnnotator(options)
+    const annotator = new TextAnnotator({ content })
     const highlightIndex = annotator.search('I like fool', {
       fuzzySearchOptions: {}
     })
-    const newContent = annotator.highlight(highlightIndex, options)
+    const newContent = annotator.highlight(highlightIndex)
     const openTag = TextAnnotator.createOpenTag(
       'highlight-',
       highlightIndex,
@@ -81,11 +74,8 @@ describe('test main scenarios', () => {
   })
 
   test('test combination of searching and highlighting', () => {
-    const options = contentObj()
-    const annotator = new TextAnnotator(options)
-    const result = annotator.searchAndHighlight('sports', {
-      highlightOptions: options
-    })
+    const annotator = new TextAnnotator({ content })
+    const result = annotator.searchAndHighlight('sports')
     const openTag = TextAnnotator.createOpenTag(
       'highlight-',
       result.highlightIndex,
@@ -97,16 +87,11 @@ describe('test main scenarios', () => {
   })
 
   test('test removal of a highlight', () => {
-    const options = contentObj()
-    const annotator = new TextAnnotator(options)
-    const result = annotator.searchAndHighlight('udon noodles', {
-      highlightOptions: options
-    })
+    const annotator = new TextAnnotator({ content })
+    const result = annotator.searchAndHighlight('udon noodles')
     expect(
       annotator.unhighlight(result.highlightIndex, {
-        byStringOperation: true,
-        content: result.content,
-        returnContent: true
+        content: result.content
       })
     ).toBe(content)
   })
@@ -114,10 +99,9 @@ describe('test main scenarios', () => {
 
 describe('test edge cases', () => {
   test('ec1', () => {
-    const options = contentObj()
-    const annotator = new TextAnnotator(options)
+    const annotator = new TextAnnotator({ content })
     const highlightIndex = annotator.search('I am Zhan Huang')
-    const newContent = annotator.highlight(highlightIndex, options)
+    const newContent = annotator.highlight(highlightIndex)
     const openTag = TextAnnotator.createOpenTag(
       'highlight-',
       highlightIndex,
@@ -129,10 +113,9 @@ describe('test edge cases', () => {
   })
 
   test('ec2', () => {
-    const options = contentObj()
-    const annotator = new TextAnnotator(options)
+    const annotator = new TextAnnotator({ content })
     const highlightIndex = annotator.search('frontend developer in EMBL-EBI')
-    const newContent = annotator.highlight(highlightIndex, options)
+    const newContent = annotator.highlight(highlightIndex)
     const openTag = TextAnnotator.createOpenTag(
       'highlight-',
       highlightIndex,

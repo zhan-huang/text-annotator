@@ -23,8 +23,7 @@ import TextAnnotator from 'text-annotator'
 
 // create an instance of TextAnnotator
 // containerId is the id of the HTML container
-var containerObj = {containerId: 'content'}
-var annotator = new TextAnnotator(containerObj)
+var annotator = new TextAnnotator({content: document.getElementById('content').innerHTML})
 
 // search for 'EMBL-EBI' in the HTML
 // if found, store the location of 'EMBL-EBI' and then return the index; otherwise return -1
@@ -33,7 +32,7 @@ var highlightIndex = annotator.search('EMBL-EBI')
 
 // annotate 'EMBL-EBI' in the HTML
 if (highlightIndex !== -1) {
-  annotator.highlight(highlightIndex, containerObj)
+  document.getElementById('content').innerHTML = annotator.highlight(highlightIndex)
   // <span id="highlight-0" class="highlight"> is used to annotate 'EMBL-EBI', see below
   // <div id="content"><p><b>Europe PMC</b> is an <i>open science platform</i> that enables access to a worldwide collection of life science publications and preprints from trusted sources around the globe.</p></p>Europe PMC is <i>developed by <span id="highlight-0" class="highlight"><b>EMBL-EBI</b></span></i>. It is a partner of <b>PubMed Central</b> and a repository of choice for many international science funders.</p></div>
 }
@@ -44,19 +43,19 @@ var highlightIndexes = annotator.searchAll('Europe PMC')
 
 // annotate all found occurances of 'Europe PMC' given their indexes
 if (highlightIndexes.length) {
-  annotator.highlightAll(highlightIndexes, containerObj)
+  document.getElementById('content').innerHTML = annotator.highlightAll(highlightIndexes)
   // <span id="highlight-1" class="highlight"> and <span id="highlight-2" class="highlight"> are used to annotate 'Europe PMC', see below
   // <div id="content"><p><span id="highlight-1" class="highlight"><b>Europe PMC</b><span> is an <i>open science platform</i> that enables access to a worldwide collection of life science publications and preprints from trusted sources around the globe.</p><p><span id="highlight-2" class="highlight">Europe PMC</span> is <i>developed by <span id="highlight-0" class="highlight"><b>EMBL-EBI</b></span></i>. It is a partner of <b>PubMed Central</b> and a repository of choice for many international science funders.</p></div>
 }
 
 // search and annotate 'a partner of PubMed Central'
-annotator.searchAndHighlight('a partner of PubMed Central', {highlightOptions: containerObj})
+document.getElementById('content').innerHTML = annotator.searchAndHighlight('a partner of PubMed Central')
 // <span id="highlight-3" class="highlight"> is used to annotate 'a partner of PubMed Central', see below
 // <div id="content"><p><span id="highlight-1" class="highlight"><b>Europe PMC</b><span> is an <i>open science platform</i> that enables access to a worldwide collection of life science publications and preprints from trusted sources around the globe.</p><p><span id="highlight-2" class="highlight">Europe PMC</span> is <i>developed by <span id="highlight-0" class="highlight"><b>EMBL-EBI</b></span></i>. It is <span id="highlight-3" class="highlight">a partner of <b>PubMed Central</b></span> and a repository of choice for many international science funders.</p></div>
 
 // remove annotation 'EMBL-EBI' given its index
 // the index is 0 as shown above
-annotator.unhighlight(highlightIndex)
+document.getElementById('content').innerHTML = annotator.unhighlight(highlightIndex)
 // annotation <span id="highlight-0" class="highlight"> is removed, see below
 // <div id="content"><p><span id="highlight-1" class="highlight"><b>Europe PMC</b><span> is an <i>open science platform</i> that enables access to a worldwide collection of life science publications and preprints from trusted sources around the globe.</p><p><span id="highlight-2" class="highlight">Europe PMC</span> is <i>developed by <b>EMBL-EBI</b></i>. It is <span id="highlight-3" class="highlight">a partner of <b>PubMed Central</b></span> and a repository of choice for many international science funders.</p></div>
 ```
@@ -65,8 +64,7 @@ annotator.unhighlight(highlightIndex)
 *new TextAnnotator(**options**)*
 | Prop | Type | Description |
 | ---- | ---- | ---- |
-| containerId | string | The ID of the container element. A piece of text within this container element can be annotated. |
-| content | string | The HTML string within which a piece of text can be annotated. Either *containerId* or *content* needs to be specified; if both specified, *containerId* is used. |
+| content | string | The HTML string within which a piece of text can be annotated. |
 
 ## Search options
 *search(str, **options**)*<br />
@@ -81,14 +79,11 @@ annotator.unhighlight(highlightIndex)
 *unhighlight(highlightIndex, **options**)*
 | Prop | Type | Description |
 | ---- | ---- | ---- |
-| containerId | string | Same as *containerId* in the constructor options. Note that to annotate a piece of text within the container element where some text has been annotated, the same *containerId* should be used. |
-| content | string | The HTML string within which the piece of text will be annotated. Note that to annotate another piece of text, the HTML string should include the previous annotations. Either containerId or content is required. If both specified, containerId is used. |
 | highlightClass | string | The class name of the annotation tag. Default is *highlight* so that the tag is *<span class="highlight" ...>*. |
 | highlightIdPattern | string | The ID pattern of the annotation tag. Default is *highlight-* so that the tag is *<span id="highlight-[highlightIndex]" ...>*. |
-| returnContent | boolean | Whether to return the HTML string after annotation. Note that *content* and *returnContent* can be used together to annotate multiple pieces of text. Default is *false*. |
 
 ## searchAndHighlight options
-*searchAndHighlight(str, **options**)*, where *options = { searchOptions, highlightOptions }*, *searchOptions* and *highlightOptions* are described above.
+*searchAndHighlight(str, **options**)*, where *options = { searchOptions, highlightOptions }*, *searchOptions* and *highlightOptions* are described above in the Annotate options table.
 
 ## Examples from Europe PMC
 text-annotator has been widely used in [Europe PMC](https://europepmc.org "Europe PMC"), an open science platform that enables access to a worldwide collection of life science publications. Here is a list of examples:

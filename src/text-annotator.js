@@ -1,10 +1,5 @@
 import getSentences from './ext/sbd'
 
-// used to distinguish between browser and Node.js environments
-// is it possible to relax so as to allow jsdom
-const isBrowser =
-  typeof window !== 'undefined' && typeof window.document !== 'undefined'
-
 // div inside span is a bad idea
 const blockElements = [
   'address',
@@ -47,17 +42,11 @@ const blockElements = [
 
 class TextAnnotator {
   constructor(options = {}) {
-    // either containerId or content is required
-    const containerId = options.containerId
     const content = options.content
     // isHTML is used to reduce the memory used: stripedHTML is empty if isHTML is false
     const isHTML = options.isHTML === undefined || options.isHTML
 
-    // containerId has higher priority over content
-    this.originalContent =
-      isBrowser && containerId
-        ? document.getElementById(containerId).innerHTML
-        : content
+    this.originalContent = this.annotatedContent = content
     this.isHTML = isHTML
 
     // stripedHTML and tagLocations are needed only when the content is HTML
@@ -120,7 +109,7 @@ class TextAnnotator {
 
     // experimental feature
     // eager search only works in (particular) browsers
-    if (isBrowser && eagerSearchOptions) {
+    if (eagerSearchOptions) {
       highlightIndex = this.eagerSearch(
         prefix,
         str,
@@ -154,17 +143,8 @@ class TextAnnotator {
   }
 
   highlight(highlightIndex, options = {}) {
-    // either containerId or content is required
-    const containerId = options.containerId
-    let content = options.content
     const highlightClass = options.highlightClass || 'highlight'
     const highlightIdPattern = options.highlightIdPattern || 'highlight-'
-    // if true, return the highlighted content instead of highlighting on the page directly
-    const returnContent = options.returnContent
-
-    if (isBrowser && containerId) {
-      content = document.getElementById(containerId).innerHTML
-    }
 
     const openTag = TextAnnotator.createOpenTag(
       highlightIdPattern,
@@ -176,50 +156,33 @@ class TextAnnotator {
       highlightIndex,
       highlightClass
     )
-    let newContent = TextAnnotator.insert(content, openTag, loc[0])
-    newContent = TextAnnotator.insert(
-      newContent,
+    this.annotatedContent = TextAnnotator.insert(
+      this.annotatedContent,
+      openTag,
+      loc[0]
+    )
+    this.annotatedContent = TextAnnotator.insert(
+      this.annotatedContent,
       TextAnnotator.createCloseTag(),
       loc[1] + openTag.length
     )
     // it has to be set after adjustLoc so that it will not be checked
     this.highlights[highlightIndex].highlighted = true
 
-    if (isBrowser && containerId && !returnContent) {
-      document.getElementById(containerId).innerHTML = newContent
-    } else {
-      return newContent
-    }
+    return this.annotatedContent
   }
 
   // experimental feature
   highlightAll(highlightIndexes, options = {}) {
-    // either containerId or content is required
-    const { containerId, content, returnContent } = options
-
-    let newContent =
-      isBrowser && containerId
-        ? document.getElementById(containerId).innerHTML
-        : content
     for (let i = 0; i < highlightIndexes.length; i++) {
-      const newOptions = Object.assign({}, options)
-      delete newOptions.containerId
-      newOptions.content = newContent
-      newOptions.returnContent = true
-      newContent = this.highlight(highlightIndexes[i], newOptions)
+      this.annotatedContent = this.highlight(highlightIndexes[i], options)
     }
-
-    if (isBrowser && containerId && !returnContent) {
-      document.getElementById(containerId).innerHTML = newContent
-    } else {
-      return newContent
-    }
+    return this.annotatedContent
   }
 
-  searchAndHighlight(str, options) {
+  searchAndHighlight(str, options = {}) {
     const highlightIndex = this.search(str, options.searchOptions)
     if (highlightIndex !== -1) {
-      // content is undefined if containerId and returnContent falsy
       return {
         highlightIndex,
         content: this.highlight(highlightIndex, options.highlightOptions)
@@ -228,60 +191,34 @@ class TextAnnotator {
   }
 
   unhighlight(highlightIndex, options = {}) {
-    // byStringOperation is used to decide whether the content is changed by string operation or dom operation
-    const byStringOperation = options.byStringOperation
-    // either containerId or content is required
-    const containerId = options.containerId
-    let content = options.content
     const highlightClass = options.highlightClass || 'highlight'
     const highlightIdPattern = options.highlightIdPattern || 'highlight-'
-    // if true, return the unhighlighted content instead of unhighlighting on the page directly
-    const returnContent = options.returnContent
 
     // it has to be set before adjustLoc so that it will not be checked
     this.highlights[highlightIndex].highlighted = false
 
-    if (byStringOperation) {
-      if (isBrowser && containerId) {
-        content = document.getElementById(containerId).innerHTML
-      }
+    // need to change when one annotation => more than one highlight
+    const loc = this.adjustLoc(
+      highlightIdPattern,
+      highlightIndex,
+      highlightClass
+    )
+    const openTagLength = TextAnnotator.getOpenTagLength(
+      highlightIdPattern,
+      highlightIndex,
+      highlightClass
+    )
+    const substr1 = this.annotatedContent.substring(
+      loc[0],
+      loc[1] + openTagLength + TextAnnotator.getCloseTagLength()
+    )
+    const substr2 = this.annotatedContent.substring(
+      loc[0] + openTagLength,
+      loc[1] + openTagLength
+    )
+    this.annotatedContent = this.annotatedContent.replace(substr1, substr2)
 
-      let newContent = content
-      // need to change when one annotation => more than one highlight
-      const loc = this.adjustLoc(
-        highlightIdPattern,
-        highlightIndex,
-        highlightClass
-      )
-      const openTagLength = TextAnnotator.getOpenTagLength(
-        highlightIdPattern,
-        highlightIndex,
-        highlightClass
-      )
-      const substr1 = newContent.substring(
-        loc[0],
-        loc[1] + openTagLength + TextAnnotator.getCloseTagLength()
-      )
-      const substr2 = newContent.substring(
-        loc[0] + openTagLength,
-        loc[1] + openTagLength
-      )
-      newContent = newContent.replace(substr1, substr2)
-
-      if (returnContent) {
-        return newContent
-      } else {
-        document.getElementById(containerId).innerHTML = newContent
-      }
-    } else if (isBrowser) {
-      const elmId = highlightIdPattern + highlightIndex
-      document.getElementById(elmId).outerHTML = document.getElementById(
-        elmId
-      ).innerHTML
-      if (returnContent) {
-        return document.getElementById(containerId).innerHTML
-      }
-    }
+    return this.annotatedContent
   }
 
   stripAndStoreHTMLTags() {
