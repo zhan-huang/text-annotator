@@ -49,7 +49,7 @@ if (highlightIndexes.length) {
 }
 
 // search and annotate 'a partner of PubMed Central'
-document.getElementById('content').innerHTML = annotator.searchAndHighlight('a partner of PubMed Central')
+document.getElementById('content').innerHTML = annotator.searchAndHighlight('a partner of PubMed Central').content
 // <span id="highlight-3" class="highlight"> is used to annotate 'a partner of PubMed Central', see below
 // <div id="content"><p><span id="highlight-1" class="highlight"><b>Europe PMC</b><span> is an <i>open science platform</i> that enables access to a worldwide collection of life science publications and preprints from trusted sources around the globe.</p><p><span id="highlight-2" class="highlight">Europe PMC</span> is <i>developed by <span id="highlight-0" class="highlight"><b>EMBL-EBI</b></span></i>. It is <span id="highlight-3" class="highlight">a partner of <b>PubMed Central</b></span> and a repository of choice for many international science funders.</p></div>
 
