@@ -450,47 +450,6 @@ class TextAnnotator {
         }
       }
 
-      // // step 4: find the sentence that includes the most similar str
-      // let bestResult = null
-      // let mostPossibleSentence = null
-      // filteredSentences.forEach((sentence, index) => {
-      //   let result = TextAnnotator.getBestSubstring(
-      //     sentence.raw,
-      //     str,
-      //     sbThreshold,
-      //     lenRatio,
-      //     caseSensitive
-      //   )
-      //   if (result.similarity) {
-      //     sbThreshold = result.similarity
-      //     bestResult = result
-      //     mostPossibleSentence = sentence
-      //   } else if (index !== filteredSentences.length - 1) {
-      //     // combine two sentences to reduce the inaccuracy of sentenizing text
-      //     result = TextAnnotator.getBestSubstring(
-      //       sentence.raw + filteredSentences[index + 1].raw,
-      //       str,
-      //       sbThreshold,
-      //       lenRatio,
-      //       caseSensitive
-      //     )
-      //     if (result.similarity) {
-      //       sbThreshold = result.similarity
-      //       bestResult = result
-      //       mostPossibleSentence = filteredSentences[index]
-      //     }
-      //   }
-      // })
-
-      // // step 5: if such sentence is found, derive and return the location of the most similar str
-      // if (bestResult) {
-      //   let index = mostPossibleSentence.index
-      //   highlightIndex =
-      //     this.highlights.push({
-      //       loc: [index + bestResult.loc[0], index + bestResult.loc[1]]
-      //     }) - 1
-      // }
-
       // step 4: find the most possible sentence
       let mostPossibleSentence = null
       for (let i = 0; i < filteredSentences.length; i++) {
@@ -843,19 +802,19 @@ class TextAnnotator {
   // copy from the code in https://www.npmjs.com/package/longest-common-subsequence
   static lcsLength(firstSequence, secondSequence, caseSensitive) {
     function createArray(dimension) {
-      var array = []
+      const array = []
 
-      for (var i = 0; i < dimension; i++) {
+      for (let i = 0; i < dimension; i++) {
         array[i] = []
       }
 
       return array
     }
 
-    var firstString = caseSensitive
+    const firstString = caseSensitive
       ? firstSequence
       : firstSequence.toLowerCase()
-    var secondString = caseSensitive
+    const secondString = caseSensitive
       ? secondSequence
       : secondSequence.toLowerCase()
 
@@ -867,12 +826,12 @@ class TextAnnotator {
       return ''
     }
 
-    var firstStringLength = firstString.length
-    var secondStringLength = secondString.length
-    var lcsMatrix = createArray(secondStringLength + 1)
+    const firstStringLength = firstString.length
+    const secondStringLength = secondString.length
+    const lcsMatrix = createArray(secondStringLength + 1)
 
-    var i
-    var j
+    let i
+    let j
     for (i = 0; i <= firstStringLength; i++) {
       lcsMatrix[0][i] = 0
     }
@@ -891,7 +850,7 @@ class TextAnnotator {
       }
     }
 
-    var lcs = ''
+    let lcs = ''
     i = secondStringLength
     j = firstStringLength
 
