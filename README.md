@@ -73,7 +73,7 @@ document.getElementById('content').innerHTML = annotator.unhighlight(highlightIn
 | Prop | Type | Description |
 | ---- | ---- | ---- |
 | trim | boolean | Whether to trim the piece of text to be annotated. Default is *true*. |
-| caseSensitive | Whether to consider case in search. Default is *false*. |
+| caseSensitive | boolean | Whether to consider case in search. Default is *false*. |
 
 ## Annotate options
 *highlight(highlightIndex, **options**)*<br />
