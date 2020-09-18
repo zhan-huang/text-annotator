@@ -50,6 +50,7 @@ if (highlightIndexes.length) {
 
 // search and annotate 'a partner of PubMed Central'
 document.getElementById('content').innerHTML = annotator.searchAndHighlight('a partner of PubMed Central').content
+// searchAndHighlight returns { content, highlightIndex }
 // <span id="highlight-3" class="highlight"> is used to annotate 'a partner of PubMed Central', see below
 // <div id="content"><p><span id="highlight-1" class="highlight"><b>Europe PMC</b><span> is an <i>open science platform</i> that enables access to a worldwide collection of life science publications and preprints from trusted sources around the globe.</p><p><span id="highlight-2" class="highlight">Europe PMC</span> is <i>developed by <span id="highlight-0" class="highlight"><b>EMBL-EBI</b></span></i>. It is <span id="highlight-3" class="highlight">a partner of <b>PubMed Central</b></span> and a repository of choice for many international science funders.</p></div>
 
@@ -72,6 +73,7 @@ document.getElementById('content').innerHTML = annotator.unhighlight(highlightIn
 | Prop | Type | Description |
 | ---- | ---- | ---- |
 | trim | boolean | Whether to trim the piece of text to be annotated. Default is *true*. |
+| caseSensitive | Whether to consider case in search. Default is *false*. |
 
 ## Annotate options
 *highlight(highlightIndex, **options**)*<br />
@@ -93,7 +95,7 @@ text-annotator has been widely used in [Europe PMC](https://europepmc.org "Europ
 !["Snippets" "Snippets"](https://raw.githubusercontent.com/zhan-huang/assets/master/text-annotator/example2.JPG)
 3. SciLite: https://europepmc.org/article/PPR/PPR158972 (Click the Annotations link in the right panel)
 !["SciLite" "SciLite"](https://raw.githubusercontent.com/zhan-huang/assets/master/text-annotator/example3.JPG)
-4. Linkback: https://europepmc.org/article/PPR/PPR158957#europepmc-85a627f3ccf1d524b850dd149add4605
+4. Linkback: https://europepmc.org/article/PPR/PPR158972#europepmc-6e6312219dcad15c9a7dda8f71dce9af (In the popup shown in Example 3, click "Share" to get this linkback URL)
 !["Linkback" "Linkback"](https://raw.githubusercontent.com/zhan-huang/assets/master/text-annotator/example4.JPG)
 
 ## Contact

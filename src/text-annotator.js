@@ -46,6 +46,7 @@ class TextAnnotator {
     // isHTML is used to reduce the memory used: stripedHTML is empty if isHTML is false
     const isHTML = options.isHTML === undefined || options.isHTML
 
+    // annotatedContent is introduced in order to avoid passing content in the methods
     this.originalContent = this.annotatedContent = content
     this.isHTML = isHTML
 
@@ -62,16 +63,17 @@ class TextAnnotator {
     }
   }
 
-  // lastHighlightIndex can be within options; it is currently used by searchAll
   // the order of directSearch => fuzzy search => eager search is tailored for specific feature, it is now the default way of search but it can be customized via options. More customizations can be done by composing functions
-  search(str, options = {}, lastHighlightIndex) {
+  search(str, options = {}) {
     let prefix = options.prefix || ''
     let postfix = options.postfix || ''
-    const directSearchOptions = options.directSearchOptions
+    const directSearchOptions = options.directSearchOptions || {}
     const fuzzySearchOptions = options.fuzzySearchOptions
     const eagerSearchOptions = options.eagerSearchOptions
     // trim by default
     const trim = options.trim === undefined || options.trim
+    // used unless overwritten
+    const caseSensitive = options.caseSensitive
 
     if (trim) {
       const res = TextAnnotator.trim(prefix, str, postfix)
@@ -87,8 +89,7 @@ class TextAnnotator {
       prefix,
       str,
       postfix,
-      directSearchOptions,
-      lastHighlightIndex
+      Object.assign({ caseSensitive }, directSearchOptions)
     )
     if (highlightIndex !== -1) {
       return highlightIndex
@@ -100,7 +101,7 @@ class TextAnnotator {
         prefix,
         str,
         postfix,
-        fuzzySearchOptions
+        Object.assign({ caseSensitive }, fuzzySearchOptions)
       )
       if (highlightIndex !== -1) {
         return highlightIndex
@@ -114,7 +115,7 @@ class TextAnnotator {
         prefix,
         str,
         postfix,
-        eagerSearchOptions
+        Object.assign({ caseSensitive }, eagerSearchOptions)
       )
       if (highlightIndex !== -1) {
         return highlightIndex
@@ -129,11 +130,13 @@ class TextAnnotator {
   searchAll(str, options = {}) {
     const highlightIndexes = []
 
-    const continueSearch = (str, options, lastHighlightIndex) => {
-      const highlightIndex = this.search(str, options, lastHighlightIndex)
+    const continueSearch = (str, options) => {
+      const highlightIndex = this.search(str, options)
       if (highlightIndex !== -1) {
         highlightIndexes.push(highlightIndex)
-        continueSearch(str, options, highlightIndex)
+        options.directSearchOptions = options.directSearchOptions || {}
+        options.directSearchOptions.lastHighlightIndex = highlightIndex
+        continueSearch(str, options)
       }
     }
 
@@ -235,16 +238,11 @@ class TextAnnotator {
     }
   }
 
-  directSearch(
-    prefix,
-    str,
-    postfix,
-    directSearchOptions = {},
-    lastHighlightIndex
-  ) {
+  directSearch(prefix, str, postfix, directSearchOptions = {}) {
     const caseSensitive = directSearchOptions.caseSensitive
     // experimental option; used for specific feature
     const encode = directSearchOptions.encode
+    const lastHighlightIndex = directSearchOptions.lastHighlightIndex
 
     let strWithFixes = prefix + str + postfix
     let text = this.isHTML ? this.stripedHTML : this.originalContent
