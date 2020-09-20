@@ -2,8 +2,9 @@
 A JavaScript library for annotating plain text in the HTML<br />
 The annotation process is:
 1. **Search**: Search for a piece of plain text in the HTML; if finding it, store its location identified by an index and then return the index for later annotation
-2. **Annotate**: Annotate the found text given its index
-It can be seen that in order to annotate a piece of text, two steps, **search** and **annotate**, are taken. The idea of decomposing the annotation process into the two steps is to allow more flexibility, e.g., the user can search for all pieces of text first, and then annotate (some of) them later when required (e.g., when clicking a button). There is also a function combining the two steps, as can be seen in the Basic usage section.
+2. **Annotate**: Annotate the found text given its index<br />
+It can be seen that in order to annotate a piece of text, two steps, **search** and **annotate**, are taken. The idea of decomposing the annotation process into the two steps is to allow more flexibility, e.g., the user can search for all pieces of text first, and then annotate (some of) them later when required (e.g., when clicking a button). There is also a function combining the two steps, as can be seen in the **An example of the usage** section.<br />
+*text-annotator* can be used in the browser or the Node.js server.
 
 ## Import
 ### install it via npm
@@ -22,7 +23,7 @@ import TextAnnotator from 'text-annotator'
 // <div id="content"><p><b>Europe PMC</b> is an <i>open science platform</i> that enables access to a worldwide collection of life science publications and preprints from trusted sources around the globe.</p></p>Europe PMC is <i>developed by <b>EMBL-EBI</b></i>. It is a partner of <b>PubMed Central</b> and a repository of choice for many international science funders.</p></div>
 
 // create an instance of TextAnnotator
-// containerId is the id of the HTML container
+// content is the HTML string within which a piece of text can be annotated
 var annotator = new TextAnnotator({content: document.getElementById('content').innerHTML})
 
 // search for 'EMBL-EBI' in the HTML
@@ -37,18 +38,18 @@ if (highlightIndex !== -1) {
   // <div id="content"><p><b>Europe PMC</b> is an <i>open science platform</i> that enables access to a worldwide collection of life science publications and preprints from trusted sources around the globe.</p></p>Europe PMC is <i>developed by <span id="highlight-0" class="highlight"><b>EMBL-EBI</b></span></i>. It is a partner of <b>PubMed Central</b> and a repository of choice for many international science funders.</p></div>
 }
 
-// search all occurances of 'Europe PMC' in the HTML
+// search for all occurances of 'Europe PMC' in the HTML
 var highlightIndexes = annotator.searchAll('Europe PMC')
 // highlightIndexes = [1, 2]
 
-// annotate all found occurances of 'Europe PMC' given their indexes
+// annotate all the found occurances of 'Europe PMC' given their indexes
 if (highlightIndexes.length) {
   document.getElementById('content').innerHTML = annotator.highlightAll(highlightIndexes)
   // <span id="highlight-1" class="highlight"> and <span id="highlight-2" class="highlight"> are used to annotate 'Europe PMC', see below
   // <div id="content"><p><span id="highlight-1" class="highlight"><b>Europe PMC</b><span> is an <i>open science platform</i> that enables access to a worldwide collection of life science publications and preprints from trusted sources around the globe.</p><p><span id="highlight-2" class="highlight">Europe PMC</span> is <i>developed by <span id="highlight-0" class="highlight"><b>EMBL-EBI</b></span></i>. It is a partner of <b>PubMed Central</b> and a repository of choice for many international science funders.</p></div>
 }
 
-// search and annotate 'a partner of PubMed Central'
+// search for and then annotate 'a partner of PubMed Central'
 document.getElementById('content').innerHTML = annotator.searchAndHighlight('a partner of PubMed Central').content
 // searchAndHighlight returns { content, highlightIndex }
 // <span id="highlight-3" class="highlight"> is used to annotate 'a partner of PubMed Central', see below
@@ -62,23 +63,23 @@ document.getElementById('content').innerHTML = annotator.unhighlight(highlightIn
 ```
 
 ## Constructor options
-*new TextAnnotator(**options**)*
+#### new TextAnnotator(*options*)
 | Prop | Type | Description |
 | ---- | ---- | ---- |
 | content | string | The HTML string within which a piece of text can be annotated. |
 
 ## Search options
-*search(str, **options**)*<br />
-*searchAll(str, **options**)*
+#### search(str, *options*)
+#### searchAll(str, *options*)
 | Prop | Type | Description |
 | ---- | ---- | ---- |
 | trim | boolean | Whether to trim the piece of text to be annotated. Default is *true*. |
 | caseSensitive | boolean | Whether to consider case in search. Default is *false*. |
 
 ## Annotate options
-*highlight(highlightIndex, **options**)*<br />
-*highlightAll(highlightIndexes, **options**)*<br />
-*unhighlight(highlightIndex, **options**)*
+#### highlight(highlightIndex, *options*)
+#### highlightAll(highlightIndexes, *options*)
+#### unhighlight(highlightIndex, *options*)
 | Prop | Type | Description |
 | ---- | ---- | ---- |
 | highlightClass | string | The class name of the annotation tag. Default is *highlight* so that the tag is *<span class="highlight" ...>*. |
