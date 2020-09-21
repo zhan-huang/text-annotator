@@ -16,7 +16,8 @@ class TextAnnotator {
   constructor(options = {}) {
     const content = options.content; // isHTML is used to reduce the memory used: stripedHTML is empty if isHTML is false
 
-    const isHTML = options.isHTML === undefined || options.isHTML;
+    const isHTML = options.isHTML === undefined || options.isHTML; // annotatedContent is introduced in order to avoid passing content in the methods
+
     this.originalContent = this.annotatedContent = content;
     this.isHTML = isHTML; // stripedHTML and tagLocations are needed only when the content is HTML
 
@@ -30,18 +31,19 @@ class TextAnnotator {
     if (isHTML) {
       this.stripAndStoreHTMLTags();
     }
-  } // lastHighlightIndex can be within options; it is currently used by searchAll
-  // the order of directSearch => fuzzy search => eager search is tailored for specific feature, it is now the default way of search but it can be customized via options. More customizations can be done by composing functions
+  } // the order of directSearch => fuzzy search => eager search is tailored for specific feature, it is now the default way of search but it can be customized via options. More customizations can be done by composing functions
 
 
-  search(str, options = {}, lastHighlightIndex) {
+  search(str, options = {}) {
     let prefix = options.prefix || '';
     let postfix = options.postfix || '';
-    const directSearchOptions = options.directSearchOptions;
+    const directSearchOptions = options.directSearchOptions || {};
     const fuzzySearchOptions = options.fuzzySearchOptions;
     const eagerSearchOptions = options.eagerSearchOptions; // trim by default
 
-    const trim = options.trim === undefined || options.trim;
+    const trim = options.trim === undefined || options.trim; // used unless overwritten
+
+    const caseSensitive = options.caseSensitive;
 
     if (trim) {
       const res = TextAnnotator.trim(prefix, str, postfix);
@@ -52,7 +54,9 @@ class TextAnnotator {
 
     let highlightIndex = -1; // direct search will always be performed
 
-    highlightIndex = this.directSearch(prefix, str, postfix, directSearchOptions, lastHighlightIndex);
+    highlightIndex = this.directSearch(prefix, str, postfix, Object.assign({
+      caseSensitive
+    }, directSearchOptions));
 
     if (highlightIndex !== -1) {
       return highlightIndex;
@@ -60,7 +64,9 @@ class TextAnnotator {
 
 
     if (fuzzySearchOptions) {
-      highlightIndex = this.fuzzySearch(prefix, str, postfix, fuzzySearchOptions);
+      highlightIndex = this.fuzzySearch(prefix, str, postfix, Object.assign({
+        caseSensitive
+      }, fuzzySearchOptions));
 
       if (highlightIndex !== -1) {
         return highlightIndex;
@@ -70,7 +76,9 @@ class TextAnnotator {
 
 
     if (eagerSearchOptions) {
-      highlightIndex = this.eagerSearch(prefix, str, postfix, eagerSearchOptions);
+      highlightIndex = this.eagerSearch(prefix, str, postfix, Object.assign({
+        caseSensitive
+      }, eagerSearchOptions));
 
       if (highlightIndex !== -1) {
         return highlightIndex;
@@ -85,12 +93,14 @@ class TextAnnotator {
   searchAll(str, options = {}) {
     const highlightIndexes = [];
 
-    const continueSearch = (str, options, lastHighlightIndex) => {
-      const highlightIndex = this.search(str, options, lastHighlightIndex);
+    const continueSearch = (str, options) => {
+      const highlightIndex = this.search(str, options);
 
       if (highlightIndex !== -1) {
         highlightIndexes.push(highlightIndex);
-        continueSearch(str, options, highlightIndex);
+        options.directSearchOptions = options.directSearchOptions || {};
+        options.directSearchOptions.lastHighlightIndex = highlightIndex;
+        continueSearch(str, options);
       }
     };
 
@@ -159,10 +169,11 @@ class TextAnnotator {
     }
   }
 
-  directSearch(prefix, str, postfix, directSearchOptions = {}, lastHighlightIndex) {
+  directSearch(prefix, str, postfix, directSearchOptions = {}) {
     const caseSensitive = directSearchOptions.caseSensitive; // experimental option; used for specific feature
 
     const encode = directSearchOptions.encode;
+    const lastHighlightIndex = directSearchOptions.lastHighlightIndex;
     let strWithFixes = prefix + str + postfix;
     let text = this.isHTML ? this.stripedHTML : this.originalContent;
 
@@ -360,46 +371,7 @@ class TextAnnotator {
               fs.index = fs.index + copy.indexOf(raw);
             }
           }
-        } // // step 4: find the sentence that includes the most similar str
-        // let bestResult = null
-        // let mostPossibleSentence = null
-        // filteredSentences.forEach((sentence, index) => {
-        //   let result = TextAnnotator.getBestSubstring(
-        //     sentence.raw,
-        //     str,
-        //     sbThreshold,
-        //     lenRatio,
-        //     caseSensitive
-        //   )
-        //   if (result.similarity) {
-        //     sbThreshold = result.similarity
-        //     bestResult = result
-        //     mostPossibleSentence = sentence
-        //   } else if (index !== filteredSentences.length - 1) {
-        //     // combine two sentences to reduce the inaccuracy of sentenizing text
-        //     result = TextAnnotator.getBestSubstring(
-        //       sentence.raw + filteredSentences[index + 1].raw,
-        //       str,
-        //       sbThreshold,
-        //       lenRatio,
-        //       caseSensitive
-        //     )
-        //     if (result.similarity) {
-        //       sbThreshold = result.similarity
-        //       bestResult = result
-        //       mostPossibleSentence = filteredSentences[index]
-        //     }
-        //   }
-        // })
-        // // step 5: if such sentence is found, derive and return the location of the most similar str
-        // if (bestResult) {
-        //   let index = mostPossibleSentence.index
-        //   highlightIndex =
-        //     this.highlights.push({
-        //       loc: [index + bestResult.loc[0], index + bestResult.loc[1]]
-        //     }) - 1
-        // }
-        // step 4: find the most possible sentence
+        } // step 4: find the most possible sentence
 
 
         let mostPossibleSentence = null;
@@ -691,17 +663,17 @@ class TextAnnotator {
 
   static lcsLength(firstSequence, secondSequence, caseSensitive) {
     function createArray(dimension) {
-      var array = [];
+      const array = [];
 
-      for (var i = 0; i < dimension; i++) {
+      for (let i = 0; i < dimension; i++) {
         array[i] = [];
       }
 
       return array;
     }
 
-    var firstString = caseSensitive ? firstSequence : firstSequence.toLowerCase();
-    var secondString = caseSensitive ? secondSequence : secondSequence.toLowerCase();
+    const firstString = caseSensitive ? firstSequence : firstSequence.toLowerCase();
+    const secondString = caseSensitive ? secondSequence : secondSequence.toLowerCase();
 
     if (firstString === secondString) {
       return firstString;
@@ -711,11 +683,11 @@ class TextAnnotator {
       return '';
     }
 
-    var firstStringLength = firstString.length;
-    var secondStringLength = secondString.length;
-    var lcsMatrix = createArray(secondStringLength + 1);
-    var i;
-    var j;
+    const firstStringLength = firstString.length;
+    const secondStringLength = secondString.length;
+    const lcsMatrix = createArray(secondStringLength + 1);
+    let i;
+    let j;
 
     for (i = 0; i <= firstStringLength; i++) {
       lcsMatrix[0][i] = 0;
@@ -735,7 +707,7 @@ class TextAnnotator {
       }
     }
 
-    var lcs = '';
+    let lcs = '';
     i = secondStringLength;
     j = firstStringLength;
 
