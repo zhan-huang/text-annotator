@@ -1,1 +1,1 @@
-module.exports = require('./text-annotator.js').default
+module.exports = await import('./text-annotator.js').default;

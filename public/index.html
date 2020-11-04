@@ -68,8 +68,8 @@
       document.getElementById('content').innerHTML = result.content
       document.getElementById('logs').innerHTML += '<li>"' + str + '" is highlighted by searchAndHighlight.</li>'
 
-      var str = 'friends'
-      document.getElementById('content').innerHTML = annotator.searchAndHighlight(str).content
+      var str2 = 'friends'
+      document.getElementById('content').innerHTML = annotator.searchAndHighlight(str2).content
       // remove the last highlight in 2 seconds
       setTimeout(function() {
         document.getElementById('content').innerHTML = annotator.unhighlight(result.highlightIndex)

@@ -4,10 +4,9 @@
   "description": "A JavaScript library for locating and annotating plain text in HTML",
   "main": "build/text-annotator.js",
   "scripts": {
-    "build": "babel src -d build",
+    "build": "tsc --project tsconfig.json",
     "build-min": "webpack --config webpack.config.js",
-    "lint": "eslint 'src/text-annotator.ts' --quiet --fix",
-    "build-ts": "tsc --project tsconfig.json",
+    "lint": "eslint src/** test/** --quiet --fix",
     "sync": "node sync.js",
     "test": "jest"
   },

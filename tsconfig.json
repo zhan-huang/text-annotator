@@ -4,9 +4,8 @@
     "noImplicitAny": false,
     "removeComments": true,
     "preserveConstEnums": true,
-    "sourceMap": true
+    "sourceMap": true,
+    "outDir": "build"
   },
-  "files": [
-    "src/text-annotator.ts"
-  ]
+  "include": ["src/**/*"]
 }
