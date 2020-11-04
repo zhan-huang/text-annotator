@@ -4,10 +4,10 @@
   "description": "A JavaScript library for locating and annotating plain text in HTML",
   "main": "build/text-annotator.js",
   "scripts": {
-    "lint": "./node_modules/.bin/eslint src/** test/** --fix",
-    "lint:nofix": "./node_modules/.bin/eslint src/** test/** --max-warnings 0",
     "build": "babel src -d build",
     "build-min": "webpack --config webpack.config.js",
+    "lint": "eslint 'src/text-annotator.ts' --quiet --fix",
+    "build-ts": "tsc --project tsconfig.json",
     "sync": "node sync.js",
     "test": "jest"
   },
@@ -30,16 +30,18 @@
     "@babel/cli": "^7.8.4",
     "@babel/core": "^7.8.7",
     "@babel/preset-env": "^7.8.7",
+    "@typescript-eslint/eslint-plugin": "^4.6.1",
+    "@typescript-eslint/parser": "^4.6.1",
     "babel-jest": "^25.1.0",
     "dotenv": "^8.0.0",
-    "eslint": "^5.15.3",
-    "eslint-config-prettier": "^4.3.0",
-    "eslint-plugin-jest": "^22.4.1",
-    "eslint-plugin-prettier": "^3.1.0",
+    "eslint": "^7.12.1",
+    "eslint-config-prettier": "^6.15.0",
+    "eslint-plugin-prettier": "^3.1.4",
     "jest": "^24.5.0",
     "pre-commit": "^1.2.2",
-    "prettier": "1.18.2",
+    "prettier": "^2.1.2",
     "sync-directory": "^2.0.8",
+    "typescript": "^4.0.5",
     "webpack": "^4.29.6",
     "webpack-cli": "^3.3.0"
   },
@@ -55,35 +57,7 @@
       ]
     ]
   },
-  "eslintConfig": {
-    "env": {
-      "browser": true,
-      "commonjs": true,
-      "es6": true
-    },
-    "extends": [
-      "eslint:recommended",
-      "plugin:jest/recommended",
-      "plugin:prettier/recommended"
-    ],
-    "globals": {
-      "Atomics": "readonly",
-      "SharedArrayBuffer": "readonly"
-    },
-    "parserOptions": {
-      "ecmaVersion": 2018,
-      "sourceType": "module"
-    },
-    "plugins": [
-      "prettier"
-    ]
-  },
-  "prettier": {
-    "semi": false,
-    "singleQuote": true
-  },
   "pre-commit": [
-    "lint:nofix",
     "test"
   ],
   "dependencies": {

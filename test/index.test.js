@@ -90,9 +90,7 @@ describe('test main scenarios', () => {
     const annotator = new TextAnnotator({ content })
     const result = annotator.searchAndHighlight('udon noodles')
     expect(
-      annotator.unhighlight(result.highlightIndex, {
-        content: result.content
-      })
+      annotator.unhighlight(result.highlightIndex)
     ).toBe(content)
   })
 })
