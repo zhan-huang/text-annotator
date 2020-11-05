@@ -819,11 +819,11 @@ class TextAnnotator {
       : secondSequence.toLowerCase()
 
     if (firstString === secondString) {
-      return firstString
+      return firstString.length
     }
 
     if ((firstString || secondString) === '') {
-      return ''
+      return ''.length
     }
 
     const firstStringLength = firstString.length
