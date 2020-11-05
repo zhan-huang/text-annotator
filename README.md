@@ -75,6 +75,8 @@ document.getElementById('content').innerHTML = annotator.unhighlight(highlightIn
 | ---- | ---- | ---- |
 | trim | boolean | Whether to trim the piece of text to be annotated. Default is *true*. |
 | caseSensitive | boolean | Whether to consider case in search. Default is *false*. |
+| prefix | string | A string BEFORE the piece of text to be annotated. Default is ''. |
+| postfix | string | A string AFTER the piece of text to be annotated. Default is ''. |
 
 ## Annotate options
 #### highlight(highlightIndex, *options*)
