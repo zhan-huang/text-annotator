@@ -209,7 +209,7 @@ const TextAnnotator: TAConstructor = class TextAnnotator implements TAInstance {
   searchAll(str: string, options: TASearchOptions = {}): number[] {
     const highlightIndexes: number[] = [];
 
-    const continueSearch: (str: string, options: TASearchOptions) => void = (str: string, options: TASearchOptions) => {
+    const continueSearch = (str: string, options: TASearchOptions): void => {
       const highlightIndex: number = this.search(str, options);
       if (highlightIndex !== -1) {
         highlightIndexes.push(highlightIndex);
