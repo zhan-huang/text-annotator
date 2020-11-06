@@ -75,6 +75,8 @@
         document.getElementById('content').innerHTML = annotator.unhighlight(result.highlightIndex)
         document.getElementById('logs').innerHTML += '<li>"' + str + '" was unhighlighted.</li>'
       }, 2000)
+
+      document.getElementById('content').innerHTML = annotator.searchAndHighlight('favourite', {searchOptions: {prefix: 'my ', postfix: ' sports'}}).content
     </script>
     <style>
       .highlight {

@@ -60,6 +60,14 @@ document.getElementById('content').innerHTML = annotator.searchAndHighlight('a p
 document.getElementById('content').innerHTML = annotator.unhighlight(highlightIndex)
 // annotation <span id="highlight-0" class="highlight"> is removed, see below
 // <div id="content"><p><span id="highlight-1" class="highlight"><b>Europe PMC</b><span> is an <i>open science platform</i> that enables access to a worldwide collection of life science publications and preprints from trusted sources around the globe.</p><p><span id="highlight-2" class="highlight">Europe PMC</span> is <i>developed by <b>EMBL-EBI</b></i>. It is <span id="highlight-3" class="highlight">a partner of <b>PubMed Central</b></span> and a repository of choice for many international science funders.</p></div>
+
+// help annotate one occurance of 'science' - the one within 'international science funders', by providing the prefix and postfix of 'Europe PMC'
+var highlightIndex = annotator.search('science', { prefix: 'international ', postfix: ' funders' })
+if (highlightIndex !== -1) {
+  document.getElementById('content').innerHTML = annotator.highlight(highlightIndex)
+}
+// <span id="highlight-4" class="highlight"> is used to annotate 'science' within 'international science funders', see below
+// <div id="content"><p><span id="highlight-1" class="highlight"><b>Europe PMC</b><span> is an <i>open science platform</i> that enables access to a worldwide collection of life science publications and preprints from trusted sources around the globe.</p><p><span id="highlight-2" class="highlight">Europe PMC</span> is <i>developed by <b>EMBL-EBI</b></i>. It is <span id="highlight-3" class="highlight">a partner of <b>PubMed Central</b></span> and a repository of choice for many international <span id="highlight-4" class="highlight">science</span> funders.</p></div>
 ```
 
 ## Constructor options
