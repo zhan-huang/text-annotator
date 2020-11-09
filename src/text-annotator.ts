@@ -42,7 +42,7 @@ const blockElements: string[] = [
   'video',
 ];
 
-// interfaces for constructor
+/* interfaces for constructor */
 interface TAConstructorOptions {
   content: string;
   // isHTML is used to reduce the memory used: stripedHTML is empty if isHTML is false
@@ -52,12 +52,15 @@ interface TAConstructor {
   new (options: TAConstructorOptions): any;
 }
 
-// interfaces for public methods
+/* interfaces for public methods */
 interface TADirectSearchOptions {
   caseSensitive?: boolean;
   // encode is an experimental option; used for specific feature
   encode?: boolean;
   lastHighlightIndex?: number;
+}
+interface ProcessSentence {
+  (raw: string): string;
 }
 interface TAFuzzySearchOptions {
   caseSensitive?: boolean;
@@ -69,7 +72,7 @@ interface TAFuzzySearchOptions {
   sbThreshold?: number;
   maxLengthDiff?: number;
   lenRatio?: number;
-  processSentence(raw: string): string;
+  processSentence?: ProcessSentence;
 }
 interface TAEagerSearchOptions {
   caseSensitive?: boolean;
@@ -104,7 +107,7 @@ interface TAInstance {
   highlight(highlightIndex: number, options?: TAHighlightOptions): string;
   // highlightAll is an experimental feature
   highlightAll(highlightIndexes: number[], options?: TAHighlightOptions): string;
-  // can remove options
+  // future work: remove options
   unhighlight(highlightIndex: number, options?: TAHighlightOptions): string;
 }
 
@@ -130,16 +133,16 @@ interface Highlight {
 }
 
 const TextAnnotator: TAConstructor = class TextAnnotator implements TAInstance {
-  private originalContent: string;
+  originalContent: string;
   // annotatedContent is introduced in order to avoid passing content in the methods
-  private annotatedContent: string;
-  private isHTML: boolean;
+  annotatedContent: string;
+  isHTML: boolean;
 
   // stripedHTML and tagLocations are needed only when the content is HTML
-  private stripedHTML: string;
-  private tagLocations: TagLocation[];
-  private sentences: Sentence[];
-  private highlights: Highlight[];
+  stripedHTML: string;
+  tagLocations: TagLocation[];
+  sentences: Sentence[];
+  highlights: Highlight[];
 
   constructor({ content, isHTML = true }: TAConstructorOptions) {
     this.originalContent = this.annotatedContent = content;
@@ -266,7 +269,6 @@ const TextAnnotator: TAConstructor = class TextAnnotator implements TAInstance {
     // it has to be set before adjustLoc so that it will not be checked
     this.highlights[highlightIndex].highlighted = false;
 
-    // need to change when one annotation => more than one highlight
     const loc: Location = this.adjustLoc(highlightIdPattern, highlightIndex, highlightClass);
     const openTagLength: number = TextAnnotator.getOpenTagLength(highlightIdPattern, highlightIndex, highlightClass);
     const substr1: string = this.annotatedContent.substring(
@@ -544,7 +546,6 @@ const TextAnnotator: TAConstructor = class TextAnnotator implements TAInstance {
     return highlightIndex;
   }
 
-  // future work: further improvement when one annotation binds with more than one highlight
   // includeRequiredTag used in = condition only
   includeRequiredTag(i: number, highlightLoc: Location, tag: string): boolean {
     const isCloseTag: boolean = tag.startsWith('</');
