@@ -105,10 +105,10 @@ const englishAbbreviations = [
   'Viz',
   'Vol',
   'vs',
-  'v'
+  'v',
 ]
 
-const setAbbreviations = abbr => {
+const setAbbreviations = (abbr) => {
   if (abbr) {
     abbreviations = abbr
   } else {
@@ -116,24 +116,21 @@ const setAbbreviations = abbr => {
   }
 }
 
-const isCapitalized = str => {
+const isCapitalized = (str) => {
   return /^[A-Z][a-z].*/.test(str) || isNumber(str)
 }
 
-const isSentenceStarter = str => {
+const isSentenceStarter = (str) => {
   return isCapitalized(str) || /``|"|'/.test(str.substring(0, 2))
 }
 
-const isCommonAbbreviation = str => {
+const isCommonAbbreviation = (str) => {
   return ~abbreviations.indexOf(str.replace(/\W+/g, ''))
 }
 
 const isTimeAbbreviation = (word, next) => {
   if (word === 'a.m.' || word === 'p.m.') {
-    const tmp = next
-      .replace(/\W+/g, '')
-      .slice(-3)
-      .toLowerCase()
+    const tmp = next.replace(/\W+/g, '').slice(-3).toLowerCase()
 
     if (tmp === 'day') {
       return true
@@ -143,12 +140,12 @@ const isTimeAbbreviation = (word, next) => {
   return false
 }
 
-const isDottedAbbreviation = word => {
+const isDottedAbbreviation = (word) => {
   const matches = word.replace(/[()[\]{}]/g, '').match(/(.\.)*/)
   return matches && matches[0].length > 0
 }
 
-const isCustomAbbreviation = str => {
+const isCustomAbbreviation = (str) => {
   if (str.length <= 3) {
     return true
   }
@@ -162,7 +159,7 @@ const isNameAbbreviation = (wordCount, words) => {
       return true
     }
 
-    const capitalized = words.filter(str => {
+    const capitalized = words.filter((str) => {
       return /[A-Z]/.test(str.charAt(0))
     })
 
@@ -180,19 +177,19 @@ const isNumber = (str, dotPos) => {
   return !isNaN(str)
 }
 
-const isPhoneNr = str => {
+const isPhoneNr = (str) => {
   return str.match(
     /^(?:(?:\+?1\s*(?:[.-]\s*)?)?(?:\(\s*([2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9])\s*\)|([2-9]1[02-9]|[2-9][02-8]1|[2-9][02-8][02-9]))\s*(?:[.-]\s*)?)?([2-9]1[02-9]|[2-9][02-9]1|[2-9][02-9]{2})\s*(?:[.-]\s*)?([0-9]{4})(?:\s*(?:#|x\.?|ext\.?|extension)\s*(\d+))?$/
   )
 }
 
-const isURL = str => {
+const isURL = (str) => {
   return str.match(
     /[-a-zA-Z0-9@:%._+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_+.~#?&//=]*)/
   )
 }
 
-const isConcatenated = word => {
+const isConcatenated = (word) => {
   let i = 0
 
   if (
@@ -210,11 +207,11 @@ const isConcatenated = word => {
   return false
 }
 
-const isBoundaryChar = word => {
+const isBoundaryChar = (word) => {
   return word === '.' || word === '!' || word === '?'
 }
 
-const sanitizeHtml = text => {
+const sanitizeHtml = (text) => {
   if (
     (typeof text == 'string' || text instanceof String) &&
     typeof document !== 'undefined'
@@ -264,7 +261,7 @@ export default function getSentences(text, user_options) {
     sanitize: false,
     allowed_tags: false,
     preserve_whitespace: false,
-    abbreviations: null
+    abbreviations: null,
   }
 
   if (typeof user_options === 'boolean') {
@@ -439,7 +436,7 @@ export default function getSentences(text, user_options) {
   const result = []
   let sentence = ''
 
-  sentences = sentences.filter(function(s) {
+  sentences = sentences.filter(function (s) {
     return s.length > 0
   })
 

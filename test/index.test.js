@@ -6,7 +6,7 @@ const content =
 const closeTag = '</span>'
 
 describe('test main scenarios', () => {
-  test('test direct search', () => {
+  test('direct search', () => {
     const annotator = new TextAnnotator({ content })
     const highlightIndex = annotator.search('I')
     const newContent = annotator.highlight(highlightIndex)
@@ -20,7 +20,7 @@ describe('test main scenarios', () => {
     )
   })
 
-  test('test search all', () => {
+  test('search all', () => {
     const annotator = new TextAnnotator({ content })
     const highlightIndexes = annotator.searchAll('Zhan Huang')
     const newContent = annotator.highlightAll(highlightIndexes)
@@ -39,12 +39,12 @@ describe('test main scenarios', () => {
     )
   })
 
-  test('test token-based fuzzy search', () => {
+  test('token-based fuzzy search', () => {
     const annotator = new TextAnnotator({ content })
     const highlightIndex = annotator.search('frontend developer', {
       prefix: 'a ',
       postfix: ' in EMBLEBI',
-      fuzzySearchOptions: {}
+      fuzzySearchOptions: {},
     })
     const newContent = annotator.highlight(highlightIndex)
     const openTag = TextAnnotator.createOpenTag(
@@ -57,10 +57,10 @@ describe('test main scenarios', () => {
     )
   })
 
-  test('test sentence-based fuzzy search', () => {
+  test('sentence-based fuzzy search', () => {
     const annotator = new TextAnnotator({ content })
     const highlightIndex = annotator.search('I like fool', {
-      fuzzySearchOptions: {}
+      fuzzySearchOptions: {},
     })
     const newContent = annotator.highlight(highlightIndex)
     const openTag = TextAnnotator.createOpenTag(
@@ -73,7 +73,7 @@ describe('test main scenarios', () => {
     )
   })
 
-  test('test combination of searching and highlighting', () => {
+  test('combination of searching and highlighting', () => {
     const annotator = new TextAnnotator({ content })
     const result = annotator.searchAndHighlight('sports')
     const openTag = TextAnnotator.createOpenTag(
@@ -86,12 +86,12 @@ describe('test main scenarios', () => {
     )
   })
 
-  test('test removal of a highlight', () => {
+  test('removal of a highlight', () => {
     const annotator = new TextAnnotator({ content })
     const result = annotator.searchAndHighlight('udon noodles')
     expect(
       annotator.unhighlight(result.highlightIndex, {
-        content: result.content
+        content: result.content,
       })
     ).toBe(content)
   })

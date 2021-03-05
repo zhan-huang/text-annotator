@@ -37,7 +37,7 @@ const blockElements = [
   'table',
   'tfoot',
   'ul',
-  'video'
+  'video',
 ]
 
 class TextAnnotator {
@@ -188,7 +188,7 @@ class TextAnnotator {
     if (highlightIndex !== -1) {
       return {
         highlightIndex,
-        content: this.highlight(highlightIndex, options.highlightOptions)
+        content: this.highlight(highlightIndex, options.highlightOptions),
       }
     }
   }
@@ -318,7 +318,7 @@ class TextAnnotator {
             if (index !== -1) {
               highlightIndex =
                 this.highlights.push({
-                  loc: [index + result.loc[0], index + result.loc[1]]
+                  loc: [index + result.loc[0], index + result.loc[1]],
                 }) - 1
             }
           }
@@ -477,7 +477,7 @@ class TextAnnotator {
               sbThreshold = newSimilarity
               mostPossibleSentence = {
                 raw: newSentenceRaw,
-                index: sentence.index
+                index: sentence.index,
               }
             }
           }
@@ -498,7 +498,7 @@ class TextAnnotator {
           let index = mostPossibleSentence.index
           highlightIndex =
             this.highlights.push({
-              loc: [index + result.loc[0], index + result.loc[1]]
+              loc: [index + result.loc[0], index + result.loc[1]],
             }) - 1
         }
       }
@@ -512,10 +512,7 @@ class TextAnnotator {
     const isCloseTag = tag.startsWith('</')
     const tagName = isCloseTag
       ? tag.split('</')[1].split('>')[0]
-      : tag
-          .split(' ')[0]
-          .split('<')[1]
-          .split('>')[0]
+      : tag.split(' ')[0].split('<')[1].split('>')[0]
 
     let included = false
 
@@ -614,10 +611,7 @@ class TextAnnotator {
             tag.startsWith('</') ||
             tag.endsWith('/>') ||
             blockElements.includes(
-              tag
-                .split(' ')[0]
-                .split('<')[1]
-                .split('>')[0]
+              tag.split(' ')[0].split('<')[1].split('>')[0]
             ) ||
             !this.includeRequiredTag(i, highlightLoc, tag)
           ) {
@@ -679,8 +673,9 @@ class TextAnnotator {
   }
 
   static createOpenTag(highlightIdPattern, highlightIndex, highlightClass) {
-    return `<span id="${highlightIdPattern +
-      highlightIndex}" class="${highlightClass}">`
+    return `<span id="${
+      highlightIdPattern + highlightIndex
+    }" class="${highlightClass}">`
   }
 
   static createCloseTag() {
@@ -723,9 +718,9 @@ class TextAnnotator {
       sanitize: false,
       allowed_tags: false,
       preserve_whitespace: true,
-      abbreviations: null
+      abbreviations: null,
     }
-    return getSentences(text, options).map(raw => {
+    return getSentences(text, options).map((raw) => {
       // future work: can tokenizer return location directly
       const index = text.indexOf(raw)
       return { raw, index }
