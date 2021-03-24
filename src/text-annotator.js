@@ -1,3 +1,4 @@
+import { encode } from 'html-entities'
 import getSentences from './ext/sbd'
 
 // div inside span is a bad idea
@@ -241,7 +242,7 @@ class TextAnnotator {
   directSearch(prefix, str, postfix, directSearchOptions = {}) {
     const caseSensitive = directSearchOptions.caseSensitive
     // experimental option; used for specific feature
-    const encode = directSearchOptions.encode
+    const ifEncode = directSearchOptions.encode
     const lastHighlightIndex = directSearchOptions.lastHighlightIndex
 
     let strWithFixes = prefix + str + postfix
@@ -260,15 +261,13 @@ class TextAnnotator {
     let highlightIndex = -1
     const index = text.indexOf(strWithFixes, offset)
     // experimental feature: if the text to be searched does not work, try to encode it
-    if (encode && index === -1) {
-      const Entities = require('html-entities').AllHtmlEntities
-      const entities = new Entities()
-      const encodedStrWithFixes = entities.encode(strWithFixes)
+    if (ifEncode && index === -1) {
+      const encodedStrWithFixes = encode(strWithFixes)
       const index = text.indexOf(encodedStrWithFixes, offset)
       if (index !== -1) {
         const loc = []
-        loc[0] = index + entities.encode(prefix).length
-        loc[1] = loc[0] + entities.encode(str).length
+        loc[0] = index + encode(prefix).length
+        loc[1] = loc[0] + encode(str).length
         highlightIndex = this.highlights.push({ loc }) - 1
       }
     } else if (index !== -1) {
