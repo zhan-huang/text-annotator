@@ -111,12 +111,13 @@ class TextAnnotator {
   }
 
   highlight(highlightIndex, options = {}) {
+    const highlightTagName = options.highlightTagName || 'span';
     const highlightClass = options.highlightClass || 'highlight';
     const highlightIdPattern = options.highlightIdPattern || 'highlight-';
-    const openTag = TextAnnotator.createOpenTag(highlightIdPattern, highlightIndex, highlightClass);
-    const loc = this.adjustLoc(highlightIdPattern, highlightIndex, highlightClass);
+    const openTag = TextAnnotator.createOpenTag(highlightTagName, highlightIdPattern, highlightIndex, highlightClass);
+    const loc = this.adjustLoc(highlightTagName, highlightIdPattern, highlightIndex, highlightClass);
     this.annotatedContent = TextAnnotator.insert(this.annotatedContent, openTag, loc[0]);
-    this.annotatedContent = TextAnnotator.insert(this.annotatedContent, TextAnnotator.createCloseTag(), loc[1] + openTag.length); // it has to be set after adjustLoc so that it will not be checked
+    this.annotatedContent = TextAnnotator.insert(this.annotatedContent, TextAnnotator.createCloseTag(highlightTagName), loc[1] + openTag.length); // it has to be set after adjustLoc so that it will not be checked
 
     this.highlights[highlightIndex].highlighted = true;
     return this.annotatedContent;
@@ -143,14 +144,15 @@ class TextAnnotator {
   }
 
   unhighlight(highlightIndex, options = {}) {
+    const highlightTagName = options.highlightTagName || 'span';
     const highlightClass = options.highlightClass || 'highlight';
     const highlightIdPattern = options.highlightIdPattern || 'highlight-'; // it has to be set before adjustLoc so that it will not be checked
 
     this.highlights[highlightIndex].highlighted = false; // need to change when one annotation => more than one highlight
 
-    const loc = this.adjustLoc(highlightIdPattern, highlightIndex, highlightClass);
-    const openTagLength = TextAnnotator.getOpenTagLength(highlightIdPattern, highlightIndex, highlightClass);
-    const substr1 = this.annotatedContent.substring(loc[0], loc[1] + openTagLength + TextAnnotator.getCloseTagLength());
+    const loc = this.adjustLoc(highlightTagName, highlightIdPattern, highlightIndex, highlightClass);
+    const openTagLength = TextAnnotator.getOpenTagLength(highlightTagName, highlightIdPattern, highlightIndex, highlightClass);
+    const substr1 = this.annotatedContent.substring(loc[0], loc[1] + openTagLength + TextAnnotator.getCloseTagLength(highlightTagName));
     const substr2 = this.annotatedContent.substring(loc[0] + openTagLength, loc[1] + openTagLength);
     this.annotatedContent = this.annotatedContent.replace(substr1, substr2);
     return this.annotatedContent;
@@ -475,7 +477,7 @@ class TextAnnotator {
     return included;
   }
 
-  adjustLoc(highlightIdPattern, highlightIndex, highlightClass) {
+  adjustLoc(highlightTagName = 'span', highlightIdPattern, highlightIndex, highlightClass) {
     const highlightLoc = this.highlights[highlightIndex].loc;
     const locInc = [0, 0]; // step 1: check locations of tags
 
@@ -518,8 +520,8 @@ class TextAnnotator {
       const highlight = this.highlights[i]; // only check the highlighted
 
       if (highlight.highlighted) {
-        const openTagLength = TextAnnotator.getOpenTagLength(highlightIdPattern, i, highlightClass);
-        const closeTagLength = TextAnnotator.getCloseTagLength();
+        const openTagLength = TextAnnotator.getOpenTagLength(highlightTagName, highlightIdPattern, i, highlightClass);
+        const closeTagLength = TextAnnotator.getCloseTagLength(highlightTagName);
         const loc = highlight.loc;
 
         if (highlightLoc[0] >= loc[1]) {
@@ -544,20 +546,20 @@ class TextAnnotator {
     return [highlightLoc[0] + locInc[0], highlightLoc[1] + locInc[1]];
   }
 
-  static createOpenTag(highlightIdPattern, highlightIndex, highlightClass) {
-    return `<span id="${highlightIdPattern + highlightIndex}" class="${highlightClass}">`;
+  static createOpenTag(highlightTagName = 'span', highlightIdPattern, highlightIndex, highlightClass) {
+    return `<${highlightTagName} id="${highlightIdPattern + highlightIndex}" class="${highlightClass}">`;
   }
 
-  static createCloseTag() {
-    return `</span>`;
+  static createCloseTag(highlightTagName = 'span') {
+    return `</${highlightTagName}>`;
   }
 
-  static getOpenTagLength(highlightIdPattern, highlightIndex, highlightClass) {
-    return TextAnnotator.createOpenTag(highlightIdPattern, highlightIndex, highlightClass).length;
+  static getOpenTagLength(highlightTagName = 'span', highlightIdPattern, highlightIndex, highlightClass) {
+    return TextAnnotator.createOpenTag(highlightTagName, highlightIdPattern, highlightIndex, highlightClass).length;
   }
 
-  static getCloseTagLength() {
-    return TextAnnotator.createCloseTag().length;
+  static getCloseTagLength(highlightTagName = 'span') {
+    return TextAnnotator.createCloseTag(highlightTagName).length;
   }
 
   static trim(prefix, str, postfix) {

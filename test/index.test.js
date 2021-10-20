@@ -11,6 +11,7 @@ describe('test main scenarios', () => {
     const highlightIndex = annotator.search('I')
     const newContent = annotator.highlight(highlightIndex)
     const openTag = TextAnnotator.createOpenTag(
+      'span',
       'highlight-',
       highlightIndex,
       'highlight'
@@ -25,11 +26,13 @@ describe('test main scenarios', () => {
     const highlightIndexes = annotator.searchAll('Zhan Huang')
     const newContent = annotator.highlightAll(highlightIndexes)
     const openTag1 = TextAnnotator.createOpenTag(
+      'span',
       'highlight-',
       highlightIndexes[0],
       'highlight'
     )
     const openTag2 = TextAnnotator.createOpenTag(
+      'span',
       'highlight-',
       highlightIndexes[1],
       'highlight'
@@ -48,6 +51,7 @@ describe('test main scenarios', () => {
     })
     const newContent = annotator.highlight(highlightIndex)
     const openTag = TextAnnotator.createOpenTag(
+      'span',
       'highlight-',
       highlightIndex,
       'highlight'
@@ -64,6 +68,7 @@ describe('test main scenarios', () => {
     })
     const newContent = annotator.highlight(highlightIndex)
     const openTag = TextAnnotator.createOpenTag(
+      'span',
       'highlight-',
       highlightIndex,
       'highlight'
@@ -77,6 +82,7 @@ describe('test main scenarios', () => {
     const annotator = new TextAnnotator({ content })
     const result = annotator.searchAndHighlight('sports')
     const openTag = TextAnnotator.createOpenTag(
+      'span',
       'highlight-',
       result.highlightIndex,
       'highlight'
@@ -95,6 +101,24 @@ describe('test main scenarios', () => {
       })
     ).toBe(content)
   })
+
+  test('use <mark> for highlight', () => {
+    const annotator = new TextAnnotator({ content })
+    const highlightIndex = annotator.search('I')
+    const newContent = annotator.highlight(highlightIndex, {
+      highlightTagName: 'mark',
+    })
+    const openTag = TextAnnotator.createOpenTag(
+      'mark',
+      'highlight-',
+      highlightIndex,
+      'highlight'
+    )
+    const closeTag = '</mark>'
+    expect(newContent).toBe(
+      `"${openTag}I${closeTag} am <b><i>Zhan Huang</i></b>, a <b>frontend developer</b> in EMBL-EBI. I like food and sports. My favourite food is udon noodles." - Zhan Huang`
+    )
+  })
 })
 
 describe('test edge cases', () => {
@@ -103,6 +127,7 @@ describe('test edge cases', () => {
     const highlightIndex = annotator.search('I am Zhan Huang')
     const newContent = annotator.highlight(highlightIndex)
     const openTag = TextAnnotator.createOpenTag(
+      'span',
       'highlight-',
       highlightIndex,
       'highlight'
@@ -117,6 +142,7 @@ describe('test edge cases', () => {
     const highlightIndex = annotator.search('frontend developer in EMBL-EBI')
     const newContent = annotator.highlight(highlightIndex)
     const openTag = TextAnnotator.createOpenTag(
+      'span',
       'highlight-',
       highlightIndex,
       'highlight'

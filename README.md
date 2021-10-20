@@ -92,6 +92,7 @@ if (highlightIndex !== -1) {
 #### unhighlight(highlightIndex, *options*)
 | Prop | Type | Description |
 | ---- | ---- | ---- |
+| highlightTagName | string | The name of the annotation tag. Default is *span* so that the tag is *<span ...>*. |
 | highlightClass | string | The class name of the annotation tag. Default is *highlight* so that the tag is *<span class="highlight" ...>*. |
 | highlightIdPattern | string | The ID pattern of the annotation tag. Default is *highlight-* so that the tag is *<span id="highlight-[highlightIndex]" ...>*. |
 
