@@ -100,15 +100,15 @@ if (highlightIndex !== -1) {
 */
 ```
 
-## Constructor options
+## Constructor
 #### new TextAnnotator(*options = {}*)
 | Prop | Type | Description |
 | ---- | ---- | ---- |
 | content | string | The HTML string within which a piece of text can be annotated. |
 
-## Search APIs and options
-#### search(str, *options = {}*)
-#### searchAll(str, *options = {}*)
+## Search APIs
+#### search(str, *options = {trim, caseSensitive, prefix, postfix}*)
+#### searchAll(str, *options = {trim, caseSensitive, prefix, postfix}*)
 | Prop | Type | Description |
 | ---- | ---- | ---- |
 | trim | boolean | Whether to trim the piece of text to be annotated. Default is *true*. |
@@ -116,17 +116,17 @@ if (highlightIndex !== -1) {
 | prefix | string | A string BEFORE the piece of text to be annotated. Default is ''. |
 | postfix | string | A string AFTER the piece of text to be annotated. Default is ''. |
 
-## Annotate APIs and options
-#### highlight(highlightIndex, *options = {}*)
-#### highlightAll(highlightIndexes, *options = {}*)
-#### unhighlight(highlightIndex, *options = {}*)
+## Annotate APIs
+#### highlight(highlightIndex, *options = {highlightTagName, highlightClass, highlightIdPattern}*)
+#### highlightAll(highlightIndexes, *options = {highlightTagName, highlightClass, highlightIdPattern}*)
+#### unhighlight(highlightIndex, *options = {highlightTagName, highlightClass, highlightIdPattern}*)
 | Prop | Type | Description |
 | ---- | ---- | ---- |
 | highlightTagName | string | The name of the annotation tag. Default is *span* so that the tag is *<span ...>*. |
 | highlightClass | string | The class name of the annotation tag. Default is *highlight* so that the tag is *<span class="highlight" ...>*. |
 | highlightIdPattern | string | The ID pattern of the annotation tag. Default is *highlight-* so that the tag is *<span id="highlight-[highlightIndex]" ...>*. |
 
-## searchAndHighlight API and options
+## searchAndHighlight API
 *searchAndHighlight(str, **options**)*, where *options = { searchOptions, highlightOptions }*, *searchOptions* and *highlightOptions* are described above in the Annotate options table.
 
 ## Examples from Europe PMC
