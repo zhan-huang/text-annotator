@@ -20,7 +20,12 @@ import TextAnnotator from 'text-annotator'
 ## An example of the usage
 ```javascript
 // below is the HTML
-// <div id="content"><p><b>Europe PMC</b> is an <i>open science platform</i> that enables access to a worldwide collection of life science publications and preprints from trusted sources around the globe.</p></p>Europe PMC is <i>developed by <b>EMBL-EBI</b></i>. It is a partner of <b>PubMed Central</b> and a repository of choice for many international science funders.</p></div>
+/*
+<div id="content">
+  <p><b>Europe PMC</b> is an <i>open science platform</i> that enables access to a worldwide collection of life science publications and preprints from trusted sources around the globe.</p>
+  <p>Europe PMC is <i>developed by <b>EMBL-EBI</b></i>. It is a partner of <b>PubMed Central</b> and a repository of choice for many international science funders.</p>
+</div>
+*/
 
 // create an instance of TextAnnotator
 // content is the HTML string within which a piece of text can be annotated
@@ -35,7 +40,12 @@ var highlightIndex = annotator.search('EMBL-EBI')
 if (highlightIndex !== -1) {
   document.getElementById('content').innerHTML = annotator.highlight(highlightIndex)
   // <span id="highlight-0" class="highlight"> is used to annotate 'EMBL-EBI', see below
-  // <div id="content"><p><b>Europe PMC</b> is an <i>open science platform</i> that enables access to a worldwide collection of life science publications and preprints from trusted sources around the globe.</p></p>Europe PMC is <i>developed by <span id="highlight-0" class="highlight"><b>EMBL-EBI</b></span></i>. It is a partner of <b>PubMed Central</b> and a repository of choice for many international science funders.</p></div>
+/*
+<div id="content">
+  <p><b>Europe PMC</b> is an <i>open science platform</i> that enables access to a worldwide collection of life science publications and preprints from trusted sources around the globe.</p>
+  <p>Europe PMC is <i>developed by <span id="highlight-0" class="highlight"><b>EMBL-EBI</b></span></i>. It is a partner of <b>PubMed Central</b> and a repository of choice for many international science funders.</p>
+</div>
+*/
 }
 
 // search for all occurances of 'Europe PMC' in the HTML
@@ -46,20 +56,35 @@ var highlightIndexes = annotator.searchAll('Europe PMC')
 if (highlightIndexes.length) {
   document.getElementById('content').innerHTML = annotator.highlightAll(highlightIndexes)
   // <span id="highlight-1" class="highlight"> and <span id="highlight-2" class="highlight"> are used to annotate 'Europe PMC', see below
-  // <div id="content"><p><span id="highlight-1" class="highlight"><b>Europe PMC</b><span> is an <i>open science platform</i> that enables access to a worldwide collection of life science publications and preprints from trusted sources around the globe.</p><p><span id="highlight-2" class="highlight">Europe PMC</span> is <i>developed by <span id="highlight-0" class="highlight"><b>EMBL-EBI</b></span></i>. It is a partner of <b>PubMed Central</b> and a repository of choice for many international science funders.</p></div>
+/*
+<div id="content">
+  <p><span id="highlight-1" class="highlight"><b>Europe PMC</b><span> is an <i>open science platform</i> that enables access to a worldwide collection of life science publications and preprints from trusted sources around the globe.</p>
+  <p><span id="highlight-2" class="highlight">Europe PMC</span> is <i>developed by <span id="highlight-0" class="highlight"><b>EMBL-EBI</b></span></i>. It is a partner of <b>PubMed Central</b> and a repository of choice for many international science funders.</p>
+</div>
+*/
 }
 
 // search for and then annotate 'a partner of PubMed Central'
 document.getElementById('content').innerHTML = annotator.searchAndHighlight('a partner of PubMed Central').content
 // searchAndHighlight returns { content, highlightIndex }
 // <span id="highlight-3" class="highlight"> is used to annotate 'a partner of PubMed Central', see below
-// <div id="content"><p><span id="highlight-1" class="highlight"><b>Europe PMC</b><span> is an <i>open science platform</i> that enables access to a worldwide collection of life science publications and preprints from trusted sources around the globe.</p><p><span id="highlight-2" class="highlight">Europe PMC</span> is <i>developed by <span id="highlight-0" class="highlight"><b>EMBL-EBI</b></span></i>. It is <span id="highlight-3" class="highlight">a partner of <b>PubMed Central</b></span> and a repository of choice for many international science funders.</p></div>
+/*
+<div id="content">
+  <p><span id="highlight-1" class="highlight"><b>Europe PMC</b><span> is an <i>open science platform</i> that enables access to a worldwide collection of life science publications and preprints from trusted sources around the globe.</p>
+  <p><span id="highlight-2" class="highlight">Europe PMC</span> is <i>developed by <span id="highlight-0" class="highlight"><b>EMBL-EBI</b></span></i>. It is <span id="highlight-3" class="highlight">a partner of <b>PubMed Central</b></span> and a repository of choice for many international science funders.</p>
+</div>
+*/
 
 // remove annotation 'EMBL-EBI' given its index
 // the index is 0 as shown above
 document.getElementById('content').innerHTML = annotator.unhighlight(highlightIndex)
 // annotation <span id="highlight-0" class="highlight"> is removed, see below
-// <div id="content"><p><span id="highlight-1" class="highlight"><b>Europe PMC</b><span> is an <i>open science platform</i> that enables access to a worldwide collection of life science publications and preprints from trusted sources around the globe.</p><p><span id="highlight-2" class="highlight">Europe PMC</span> is <i>developed by <b>EMBL-EBI</b></i>. It is <span id="highlight-3" class="highlight">a partner of <b>PubMed Central</b></span> and a repository of choice for many international science funders.</p></div>
+/*
+<div id="content">
+  <p><span id="highlight-1" class="highlight"><b>Europe PMC</b><span> is an <i>open science platform</i> that enables access to a worldwide collection of life science publications and preprints from trusted sources around the globe.</p>
+  <p><span id="highlight-2" class="highlight">Europe PMC</span> is <i>developed by <b>EMBL-EBI</b></i>. It is <span id="highlight-3" class="highlight">a partner of <b>PubMed Central</b></span> and a repository of choice for many international science funders.</p>
+</div>
+*/
 
 // help annotate one occurance of 'science' - the one within 'international science funders', by providing the prefix and postfix of 'Europe PMC'
 var highlightIndex = annotator.search('science', { prefix: 'international ', postfix: ' funders' })
@@ -67,18 +92,23 @@ if (highlightIndex !== -1) {
   document.getElementById('content').innerHTML = annotator.highlight(highlightIndex)
 }
 // <span id="highlight-4" class="highlight"> is used to annotate 'science' within 'international science funders', see below
-// <div id="content"><p><span id="highlight-1" class="highlight"><b>Europe PMC</b><span> is an <i>open science platform</i> that enables access to a worldwide collection of life science publications and preprints from trusted sources around the globe.</p><p><span id="highlight-2" class="highlight">Europe PMC</span> is <i>developed by <b>EMBL-EBI</b></i>. It is <span id="highlight-3" class="highlight">a partner of <b>PubMed Central</b></span> and a repository of choice for many international <span id="highlight-4" class="highlight">science</span> funders.</p></div>
+/*
+<div id="content">
+  <p><span id="highlight-1" class="highlight"><b>Europe PMC</b><span> is an <i>open science platform</i> that enables access to a worldwide collection of life science publications and preprints from trusted sources around the globe.</p>
+  <p><span id="highlight-2" class="highlight">Europe PMC</span> is <i>developed by <b>EMBL-EBI</b></i>. It is <span id="highlight-3" class="highlight">a partner of <b>PubMed Central</b></span> and a repository of choice for many international <span id="highlight-4" class="highlight">science</span> funders.</p>
+</div>
+*/
 ```
 
 ## Constructor options
-#### new TextAnnotator(*options*)
+#### new TextAnnotator(*options = {}*)
 | Prop | Type | Description |
 | ---- | ---- | ---- |
 | content | string | The HTML string within which a piece of text can be annotated. |
 
-## Search options
-#### search(str, *options*)
-#### searchAll(str, *options*)
+## Search APIs and options
+#### search(str, *options = {}*)
+#### searchAll(str, *options = {}*)
 | Prop | Type | Description |
 | ---- | ---- | ---- |
 | trim | boolean | Whether to trim the piece of text to be annotated. Default is *true*. |
@@ -86,17 +116,17 @@ if (highlightIndex !== -1) {
 | prefix | string | A string BEFORE the piece of text to be annotated. Default is ''. |
 | postfix | string | A string AFTER the piece of text to be annotated. Default is ''. |
 
-## Annotate options
-#### highlight(highlightIndex, *options*)
-#### highlightAll(highlightIndexes, *options*)
-#### unhighlight(highlightIndex, *options*)
+## Annotate APIs and options
+#### highlight(highlightIndex, *options = {}*)
+#### highlightAll(highlightIndexes, *options = {}*)
+#### unhighlight(highlightIndex, *options = {}*)
 | Prop | Type | Description |
 | ---- | ---- | ---- |
 | highlightTagName | string | The name of the annotation tag. Default is *span* so that the tag is *<span ...>*. |
 | highlightClass | string | The class name of the annotation tag. Default is *highlight* so that the tag is *<span class="highlight" ...>*. |
 | highlightIdPattern | string | The ID pattern of the annotation tag. Default is *highlight-* so that the tag is *<span id="highlight-[highlightIndex]" ...>*. |
 
-## searchAndHighlight options
+## searchAndHighlight API and options
 *searchAndHighlight(str, **options**)*, where *options = { searchOptions, highlightOptions }*, *searchOptions* and *highlightOptions* are described above in the Annotate options table.
 
 ## Examples from Europe PMC
