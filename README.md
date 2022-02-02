@@ -1,6 +1,6 @@
 # text-annotator
 ## News
-We released a new version of text-annotator: [text-annotator-v2](https://www.npmjs.com/package/text-annotator-v2), with some improvements and breaking changes. We will still maintain this library here and will still use it in our product. But you are welcome to try text-annotator-v2 which is supposed to be [safer and more lightweight](https://www.npmjs.com/package/text-annotator-v2#comparing-text-annotator-v2-and-text-annotator).
+We released a new version of text-annotator: [text-annotator-v2](https://www.npmjs.com/package/text-annotator-v2), with some improvements and breaking changes. We will still maintain this library here and will still use it in our product. But you are welcome to try text-annotator-v2 which is supposed to be [more robust and lightweight](https://www.npmjs.com/package/text-annotator-v2#comparing-text-annotator-v2-and-text-annotator).
 
 ## Introduction
 text-annotator is a JavaScript library for annotating plain text in the HTML.<br />
