@@ -7,7 +7,7 @@ text-annotator is a JavaScript library for annotating plain text in the HTML.<br
 The annotation process is:
 1. **Search**: Search for a piece of plain text in the HTML; if finding it, store its location identified by an index and then return the index for later annotation
 2. **Annotate**: Annotate the found text given its index<br />
-It can be seen that in order to annotate a piece of text, two steps, **search** and **annotate**, are taken. The idea of decomposing the annotation process into the two steps is to allow more flexibility, e.g., the user can search for all pieces of text first, and then annotate (some of) them later when required (e.g., when clicking a button). There is also a function combining the two steps, as can be seen in the **An example of the usage** section.<br />
+It can be seen that in order to annotate a piece of text, two steps, **search** and **annotate**, are taken. The idea of decomposing the annotation process into the two steps is to allow more flexibility, e.g., the user can search for all pieces of text first, and then annotate them later when required (e.g., when clicking a button). There is also a function combining the two steps, as can be seen in the **An example of the usage** section.<br />
 *text-annotator* can be used in the browser or the Node.js server.
 
 ## Import
@@ -69,7 +69,7 @@ if (highlightIndexes.length) {
 }
 
 // search for and then annotate 'a partner of PubMed Central'
-document.getElementById('content').innerHTML = annotator.searchAndHighlight('a partner of PubMed Central').content
+document.getElementById('content').innerHTML = annotator.searchAndHighlight('a partner of PubMed Central')
 // searchAndHighlight returns { content, highlightIndex }
 // <span id="highlight-3" class="highlight"> is used to annotate 'a partner of PubMed Central', see below
 /*
@@ -120,7 +120,7 @@ if (highlightIndex !== -1) {
 | prefix | string | A string BEFORE the piece of text to be annotated. Default is ''. |
 | postfix | string | A string AFTER the piece of text to be annotated. Default is ''. |
 
-## Annotate APIs
+## Annotation APIs
 #### highlight(highlightIndex, *options = {highlightTagName, highlightClass, highlightIdPattern}*)
 #### highlightAll(highlightIndexes, *options = {highlightTagName, highlightClass, highlightIdPattern}*)
 #### unhighlight(highlightIndex, *options = {highlightTagName, highlightClass, highlightIdPattern}*)
@@ -131,7 +131,7 @@ if (highlightIndex !== -1) {
 | highlightIdPattern | string | The ID pattern of the annotation tag. Default is *highlight-* so that the tag is *<span id="highlight-[highlightIndex]" ...>*. |
 
 ## searchAndHighlight API
-*searchAndHighlight(str, **options**)*, where *options = { searchOptions, highlightOptions }*, *searchOptions* and *highlightOptions* are described above in the Annotate options table.
+*searchAndHighlight(str, **options**)*, where *options = { searchOptions, highlightOptions }*, *searchOptions* and *highlightOptions* are described above in the Annotation options table.
 
 ## Examples from Europe PMC
 text-annotator has been widely used in [Europe PMC](https://europepmc.org "Europe PMC"), an open science platform that enables access to a worldwide collection of life science publications. Here is a list of examples:
