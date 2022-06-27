@@ -1,9 +1,9 @@
 const path = require('path')
 
 module.exports = {
-  entry: './src/index.js',
+  entry: './build/index.js',
   target: 'web',
-  mode: 'production',
+  mode: 'development',
   output: {
     path: path.join(__dirname, 'public/js'),
     filename: 'text-annotator.min.js',
