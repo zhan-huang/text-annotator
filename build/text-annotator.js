@@ -313,108 +313,108 @@ class TextAnnotator {
       }
     } // sentence-based
     else if (sentenceBased) {
-      // step 1: sentenize the text if has not done so
-      let sentences = [];
+        // step 1: sentenize the text if has not done so
+        let sentences = [];
 
-      if (this.sentences.length) {
-        sentences = this.sentences;
-      } else {
-        sentences = this.sentences = TextAnnotator.sentenize(text);
-      } // step 2 (for efficiency only): filter sentences by words of the str
-
-
-      const words = str.split(/\s/);
-      const filteredSentences = [];
-
-      for (let i = 0; i < sentences.length; i++) {
-        for (let j = 0; j < words.length; j++) {
-          if (sentences[i].raw.includes(words[j])) {
-            filteredSentences.push(sentences[i]);
-            break;
-          }
-        }
-      } //step 3 (optional)
+        if (this.sentences.length) {
+          sentences = this.sentences;
+        } else {
+          sentences = this.sentences = TextAnnotator.sentenize(text);
+        } // step 2 (for efficiency only): filter sentences by words of the str
 
 
-      if (processSentence) {
-        let index = 0; // for each sentence
+        const words = str.split(/\s/);
+        const filteredSentences = [];
 
-        for (let i = 0; i < filteredSentences.length; i++) {
-          const fs = filteredSentences[i];
-          let raw = fs.raw; // loc without tags
-
-          const loc = [fs.index, fs.index + raw.length];
-          let locInc = 0; // add loc of all tags before the one being checked so as to derive the actual loc
-
-          const tagLocations = this.tagLocations; // for each loc of tag whose loc is larger than the last sentence
-
-          for (let j = index; j < tagLocations.length; j++) {
-            const tagLoc = tagLocations[j];
-
-            if (tagLoc[0] >= loc[0] && tagLoc[0] <= loc[1]) {
-              const tag = this.originalContent.substring(tagLoc[0] + tagLoc[2], tagLoc[0] + tagLoc[2] + tagLoc[1]);
-              const insertIndex = tagLoc[0] + locInc - loc[0];
-              raw = raw.slice(0, insertIndex) + tag + raw.slice(insertIndex);
-              locInc += tagLoc[1];
-            } else if (tagLoc[0] > loc[1]) {
-              index = j; // not sure this part
-
+        for (let i = 0; i < sentences.length; i++) {
+          for (let j = 0; j < words.length; j++) {
+            if (sentences[i].raw.includes(words[j])) {
+              filteredSentences.push(sentences[i]);
               break;
             }
           }
-
-          raw = processSentence(raw);
-          raw = raw.replace(/(<([^>]+)>)/gi, '');
-          const copy = fs.raw; // update the sentence if it got reduced
-
-          if (copy !== raw) {
-            fs.raw = raw;
-            fs.index = fs.index + copy.indexOf(raw);
-          }
-        }
-      } // step 4: find the most possible sentence
+        } //step 3 (optional)
 
 
-      let mostPossibleSentence = null;
+        if (processSentence) {
+          let index = 0; // for each sentence
 
-      for (let i = 0; i < filteredSentences.length; i++) {
-        const sentence = filteredSentences[i];
-        const similarity = TextAnnotator.getSimilarity(sentence.raw, str, caseSensitive);
+          for (let i = 0; i < filteredSentences.length; i++) {
+            const fs = filteredSentences[i];
+            let raw = fs.raw; // loc without tags
 
-        if (similarity >= sbThreshold) {
-          sbThreshold = similarity;
-          mostPossibleSentence = sentence;
-        } else if (i !== filteredSentences.length - 1) {
-          // combine two sentences to reduce the inaccuracy of sentenizing text
-          const newSentenceRaw = sentence.raw + filteredSentences[i + 1].raw;
-          const lengthDiff = Math.abs(newSentenceRaw.length - str.length) / str.length;
+            const loc = [fs.index, fs.index + raw.length];
+            let locInc = 0; // add loc of all tags before the one being checked so as to derive the actual loc
 
-          if (lengthDiff <= maxLengthDiff) {
-            const newSimilarity = TextAnnotator.getSimilarity(newSentenceRaw, str, caseSensitive);
+            const tagLocations = this.tagLocations; // for each loc of tag whose loc is larger than the last sentence
 
-            if (newSimilarity >= sbThreshold) {
-              sbThreshold = newSimilarity;
-              mostPossibleSentence = {
-                raw: newSentenceRaw,
-                index: sentence.index
-              };
+            for (let j = index; j < tagLocations.length; j++) {
+              const tagLoc = tagLocations[j];
+
+              if (tagLoc[0] >= loc[0] && tagLoc[0] <= loc[1]) {
+                const tag = this.originalContent.substring(tagLoc[0] + tagLoc[2], tagLoc[0] + tagLoc[2] + tagLoc[1]);
+                const insertIndex = tagLoc[0] + locInc - loc[0];
+                raw = raw.slice(0, insertIndex) + tag + raw.slice(insertIndex);
+                locInc += tagLoc[1];
+              } else if (tagLoc[0] > loc[1]) {
+                index = j; // not sure this part
+
+                break;
+              }
+            }
+
+            raw = processSentence(raw);
+            raw = raw.replace(/(<([^>]+)>)/gi, '');
+            const copy = fs.raw; // update the sentence if it got reduced
+
+            if (copy !== raw) {
+              fs.raw = raw;
+              fs.index = fs.index + copy.indexOf(raw);
             }
           }
-        }
-      } // step 5:  if the most possible sentence is found, derive and return the location of the most similar str from it
+        } // step 4: find the most possible sentence
 
 
-      if (mostPossibleSentence) {
-        const result = TextAnnotator.getBestSubstring(mostPossibleSentence.raw, str, sbThreshold, lenRatio, caseSensitive, true);
+        let mostPossibleSentence = null;
 
-        if (result.loc) {
-          let index = mostPossibleSentence.index;
-          highlightIndex = this.highlights.push({
-            loc: [index + result.loc[0], index + result.loc[1]]
-          }) - 1;
+        for (let i = 0; i < filteredSentences.length; i++) {
+          const sentence = filteredSentences[i];
+          const similarity = TextAnnotator.getSimilarity(sentence.raw, str, caseSensitive);
+
+          if (similarity >= sbThreshold) {
+            sbThreshold = similarity;
+            mostPossibleSentence = sentence;
+          } else if (i !== filteredSentences.length - 1) {
+            // combine two sentences to reduce the inaccuracy of sentenizing text
+            const newSentenceRaw = sentence.raw + filteredSentences[i + 1].raw;
+            const lengthDiff = Math.abs(newSentenceRaw.length - str.length) / str.length;
+
+            if (lengthDiff <= maxLengthDiff) {
+              const newSimilarity = TextAnnotator.getSimilarity(newSentenceRaw, str, caseSensitive);
+
+              if (newSimilarity >= sbThreshold) {
+                sbThreshold = newSimilarity;
+                mostPossibleSentence = {
+                  raw: newSentenceRaw,
+                  index: sentence.index
+                };
+              }
+            }
+          }
+        } // step 5:  if the most possible sentence is found, derive and return the location of the most similar str from it
+
+
+        if (mostPossibleSentence) {
+          const result = TextAnnotator.getBestSubstring(mostPossibleSentence.raw, str, sbThreshold, lenRatio, caseSensitive, true);
+
+          if (result.loc) {
+            let index = mostPossibleSentence.index;
+            highlightIndex = this.highlights.push({
+              loc: [index + result.loc[0], index + result.loc[1]]
+            }) - 1;
+          }
         }
       }
-    }
 
     return highlightIndex;
   } // future work: further improvement when one annotation binds with more than one highlight
@@ -452,27 +452,27 @@ class TextAnnotator {
       }
     } // if the start tag is at the border, check forwards until the end of the highlight
     else {
-      for (let i2 = i + 1; i2 < this.tagLocations.length; i2++) {
-        const tagLoc2 = this.tagLocations[i2];
+        for (let i2 = i + 1; i2 < this.tagLocations.length; i2++) {
+          const tagLoc2 = this.tagLocations[i2];
 
-        if (highlightLoc[1] < tagLoc2[0]) {
-          break;
-        } else {
-          const tag2 = this.originalContent.substring(tagLoc2[0] + tagLoc2[2], tagLoc2[0] + tagLoc2[2] + tagLoc2[1]);
-
-          if (tag2.startsWith('<' + tagName)) {
-            requiredTagNumber++;
-          } else if (tag2.startsWith('</' + tagName)) {
-            requiredTagCount++;
-          }
-
-          if (requiredTagNumber === requiredTagCount) {
-            included = true;
+          if (highlightLoc[1] < tagLoc2[0]) {
             break;
+          } else {
+            const tag2 = this.originalContent.substring(tagLoc2[0] + tagLoc2[2], tagLoc2[0] + tagLoc2[2] + tagLoc2[1]);
+
+            if (tag2.startsWith('<' + tagName)) {
+              requiredTagNumber++;
+            } else if (tag2.startsWith('</' + tagName)) {
+              requiredTagCount++;
+            }
+
+            if (requiredTagNumber === requiredTagCount) {
+              included = true;
+              break;
+            }
           }
         }
       }
-    }
 
     return included;
   }
@@ -490,26 +490,26 @@ class TextAnnotator {
         break;
       } // start end&tag
       else if (highlightLoc[1] === tagLoc[0]) {
-        const tag = this.originalContent.substring(tagLoc[0] + tagLoc[2], tagLoc[0] + tagLoc[2] + tagLoc[1]); // if end tag, not block element and include the required close tag, add right to the tag
+          const tag = this.originalContent.substring(tagLoc[0] + tagLoc[2], tagLoc[0] + tagLoc[2] + tagLoc[1]); // if end tag, not block element and include the required close tag, add right to the tag
 
-        if (!tag.endsWith('/>') && tag.startsWith('</') && !blockElements.includes(tag.split('</')[1].split('>')[0]) && this.includeRequiredTag(i, highlightLoc, tag)) {
-          locInc[1] += tagLoc[1];
-        }
-      } // start tag end
-      else if (highlightLoc[1] > tagLoc[0]) {
-        locInc[1] += tagLoc[1]; // start&tag end
-
-        if (highlightLoc[0] === tagLoc[0]) {
-          const tag = this.originalContent.substring(tagLoc[0] + tagLoc[2], tagLoc[0] + tagLoc[2] + tagLoc[1]); // if self close tag or end tag or block element or not include the required close tag, add right to the tag
-
-          if (tag.startsWith('</') || tag.endsWith('/>') || blockElements.includes(tag.split(' ')[0].split('<')[1].split('>')[0]) || !this.includeRequiredTag(i, highlightLoc, tag)) {
-            locInc[0] += tagLoc[1];
+          if (!tag.endsWith('/>') && tag.startsWith('</') && !blockElements.includes(tag.split('</')[1].split('>')[0]) && this.includeRequiredTag(i, highlightLoc, tag)) {
+            locInc[1] += tagLoc[1];
           }
-        } // tag start end
-        else if (highlightLoc[0] > tagLoc[0]) {
-          locInc[0] += tagLoc[1];
-        }
-      }
+        } // start tag end
+        else if (highlightLoc[1] > tagLoc[0]) {
+            locInc[1] += tagLoc[1]; // start&tag end
+
+            if (highlightLoc[0] === tagLoc[0]) {
+              const tag = this.originalContent.substring(tagLoc[0] + tagLoc[2], tagLoc[0] + tagLoc[2] + tagLoc[1]); // if self close tag or end tag or block element or not include the required close tag, add right to the tag
+
+              if (tag.startsWith('</') || tag.endsWith('/>') || blockElements.includes(tag.split(' ')[0].split('<')[1].split('>')[0]) || !this.includeRequiredTag(i, highlightLoc, tag)) {
+                locInc[0] += tagLoc[1];
+              }
+            } // tag start end
+            else if (highlightLoc[0] > tagLoc[0]) {
+                locInc[0] += tagLoc[1];
+              }
+          }
     } // step 2: check locations of other highlights
     // all span (no blocks)
     // stored in a different array than tags
@@ -529,17 +529,17 @@ class TextAnnotator {
           locInc[1] += openTagLength + closeTagLength;
         } // syntactical correct but semantical incorrect
         else if (highlightLoc[0] < loc[1] && highlightLoc[0] > loc[0] && highlightLoc[1] > loc[1]) {
-          locInc[0] += openTagLength;
-          locInc[1] += openTagLength + closeTagLength;
-        } else if (highlightLoc[0] <= loc[0] && highlightLoc[1] >= loc[1]) {
-          locInc[1] += openTagLength + closeTagLength;
-        } // syntactical correct but semantical incorrect
-        else if (highlightLoc[0] < loc[0] && highlightLoc[1] > loc[0] && highlightLoc[1] < loc[1]) {
-          locInc[1] += openTagLength;
-        } else if (highlightLoc[0] >= loc[0] && highlightLoc[1] <= loc[1]) {
-          locInc[0] += openTagLength;
-          locInc[1] += openTagLength;
-        }
+            locInc[0] += openTagLength;
+            locInc[1] += openTagLength + closeTagLength;
+          } else if (highlightLoc[0] <= loc[0] && highlightLoc[1] >= loc[1]) {
+            locInc[1] += openTagLength + closeTagLength;
+          } // syntactical correct but semantical incorrect
+          else if (highlightLoc[0] < loc[0] && highlightLoc[1] > loc[0] && highlightLoc[1] < loc[1]) {
+              locInc[1] += openTagLength;
+            } else if (highlightLoc[0] >= loc[0] && highlightLoc[1] <= loc[1]) {
+              locInc[0] += openTagLength;
+              locInc[1] += openTagLength;
+            }
       }
     }
 
