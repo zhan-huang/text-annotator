@@ -5,13 +5,15 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.default = void 0;
 
-var _htmlEntities = require("html-entities");
-
 var _sbd = _interopRequireDefault(require("./ext/sbd"));
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-// div inside span is a bad idea
+const encode = str => {
+  return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}; // div inside span is a bad idea
+
+
 const blockElements = ['address', 'article', 'aside', 'blockquote', 'canvas', 'dd', 'div', 'dl', 'dt', 'fieldset', 'figcaption', 'figure', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hgroup', 'hr', 'li', 'main', 'nav', 'noscript', 'ol', 'output', 'p', 'pre', 'section', 'table', 'tfoot', 'ul', 'video'];
 
 class TextAnnotator {
@@ -197,13 +199,13 @@ class TextAnnotator {
     const index = text.indexOf(strWithFixes, offset); // experimental feature: if the text to be searched does not work, try to encode it
 
     if (ifEncode && index === -1) {
-      const encodedStrWithFixes = (0, _htmlEntities.encode)(strWithFixes);
+      const encodedStrWithFixes = encode(strWithFixes);
       const index = text.indexOf(encodedStrWithFixes, offset);
 
       if (index !== -1) {
         const loc = [];
-        loc[0] = index + (0, _htmlEntities.encode)(prefix).length;
-        loc[1] = loc[0] + (0, _htmlEntities.encode)(str).length;
+        loc[0] = index + encode(prefix).length;
+        loc[1] = loc[0] + encode(str).length;
         highlightIndex = this.highlights.push({
           loc
         }) - 1;

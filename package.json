@@ -76,8 +76,5 @@
   "prettier": {
     "semi": false,
     "singleQuote": true
-  },
-  "dependencies": {
-    "html-entities": "^2.1.0"
   }
 }

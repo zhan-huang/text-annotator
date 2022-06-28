@@ -1,5 +1,13 @@
-import { encode } from 'html-entities'
 import getSentences from './ext/sbd'
+
+const encode = (str) => {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+}
 
 // div inside span is a bad idea
 const blockElements = [
