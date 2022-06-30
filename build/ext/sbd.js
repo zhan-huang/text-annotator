@@ -2,9 +2,8 @@
 
 Object.defineProperty(exports, "__esModule", {
   value: true
-});
-exports.default = getSentences;
-// the sbd lib was modified from https://github.com/Tessmore/sbd
+}); // the sbd lib was modified from https://github.com/Tessmore/sbd
+
 let abbreviations = [];
 const englishAbbreviations = ['al', 'adj', 'assn', 'Ave', 'BSc', 'MSc', 'Cell', 'Ch', 'Co', 'cc', 'Corp', 'Dem', 'Dept', 'ed', 'eg', 'Eq', 'Eqs', 'est', 'est', 'etc', 'Ex', 'ext', 'Fig', 'fig', 'Figs', 'figs', 'i.e', 'ie', 'Inc', 'inc', 'Jan', 'Feb', 'Mar', 'Apr', 'Jun', 'Jul', 'Aug', 'Sep', 'Sept', 'Oct', 'Nov', 'Dec', 'jr', 'mi', 'Miss', 'Mrs', 'Mr', 'Ms', 'Mol', 'mt', 'mts', 'no', 'Nos', 'PhD', 'MD', 'BA', 'MA', 'MM', 'pl', 'pop', 'pp', 'Prof', 'Dr', 'pt', 'Ref', 'Refs', 'Rep', 'repr', 'rev', 'Sec', 'Secs', 'Sgt', 'Col', 'Gen', 'Rep', 'Sen', 'Gov', 'Lt', 'Maj', 'Capt', 'St', 'Sr', 'sr', 'Jr', 'jr', 'Rev', 'Sun', 'Mon', 'Tu', 'Tue', 'Tues', 'Wed', 'Th', 'Thu', 'Thur', 'Thurs', 'Fri', 'Sat', 'trans', 'Univ', 'Viz', 'Vol', 'vs', 'v'];
 
@@ -154,7 +153,7 @@ function getSentences(text, user_options) {
   if (typeof user_options === 'boolean') {
     options.newline_boundaries = true;
   } else {
-    for (let k in user_options) {
+    for (const k in user_options) {
       options[k] = user_options[k];
     }
   }
@@ -342,3 +341,5 @@ function getSentences(text, user_options) {
 
   return result;
 }
+
+exports.default = getSentences;

@@ -267,7 +267,7 @@ export default function getSentences(text, user_options) {
   if (typeof user_options === 'boolean') {
     options.newline_boundaries = true
   } else {
-    for (let k in user_options) {
+    for (const k in user_options) {
       options[k] = user_options[k]
     }
   }

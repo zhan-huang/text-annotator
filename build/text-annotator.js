@@ -3,11 +3,8 @@
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.default = void 0;
 
-var _sbd = _interopRequireDefault(require("./ext/sbd"));
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+const sbd_1 = require("./ext/sbd");
 
 const encode = str => {
   return str.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -17,13 +14,15 @@ const encode = str => {
 const blockElements = ['address', 'article', 'aside', 'blockquote', 'canvas', 'dd', 'div', 'dl', 'dt', 'fieldset', 'figcaption', 'figure', 'footer', 'form', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'header', 'hgroup', 'hr', 'li', 'main', 'nav', 'noscript', 'ol', 'output', 'p', 'pre', 'section', 'table', 'tfoot', 'ul', 'video'];
 
 class TextAnnotator {
-  constructor(options = {}) {
-    const content = options.content; // isHTML is used to reduce the memory used: stripedHTML is empty if isHTML is false
+  constructor(options = {
+    content: ''
+  }) {
+    this.content = ''; // isHTML is used to reduce the memory used: stripedHTML is empty if isHTML is false
 
-    const isHTML = options.isHTML === undefined || options.isHTML; // annotatedContent is introduced in order to avoid passing content in the methods
+    this.isHTML = true;
+    this.originalContent = ''; // annotatedContent is introduced in order to avoid passing content in the methods
 
-    this.originalContent = this.annotatedContent = content;
-    this.isHTML = isHTML; // stripedHTML and tagLocations are needed only when the content is HTML
+    this.annotatedContent = ''; // stripedHTML and tagLocations are needed only when the content is HTML
 
     this.stripedHTML = '';
     this.tagLocations = []; // sentences are used in sentence-based fuzzy search
@@ -31,6 +30,10 @@ class TextAnnotator {
     this.sentences = []; // future work: one highlight can have more than one location because of the potential issue in tag insertion
 
     this.highlights = [];
+    const content = options.content;
+    const isHTML = options.isHTML === undefined || options.isHTML;
+    this.originalContent = this.annotatedContent = content;
+    this.isHTML = isHTML;
 
     if (isHTML) {
       this.stripAndStoreHTMLTags();
@@ -167,7 +170,7 @@ class TextAnnotator {
     let indexInc = 0;
 
     while (tag = this.stripedHTML.match(tagRegEx)) {
-      this.stripedHTML = this.stripedHTML.replace(tag, '');
+      this.stripedHTML = this.stripedHTML.replace(tag[0], '');
       const tagLength = tag[0].length; // tagLocations will be used in adjustLoc
 
       this.tagLocations.push([tag.index, tagLength, indexInc]);
@@ -222,7 +225,9 @@ class TextAnnotator {
     return highlightIndex;
   }
 
-  eagerSearch(prefix, str, postfix, eagerSearchOptions = {}) {
+  eagerSearch(prefix, str, postfix, eagerSearchOptions = {
+    containerId: ''
+  }) {
     const caseSensitive = eagerSearchOptions.caseSensitive;
     const containerId = eagerSearchOptions.containerId;
     const threshold = eagerSearchOptions.threshold || 0.74;
@@ -246,7 +251,7 @@ class TextAnnotator {
           const foundStr = found.innerHTML.replace(/<[^>]*>/g, '');
           const result = TextAnnotator.getBestSubstring(foundStr, str, threshold);
 
-          if (result.similarity) {
+          if (result) {
             const text = this.isHTML ? this.stripedHTML : this.originalContent;
             const index = text.indexOf(foundStr);
 
@@ -269,7 +274,7 @@ class TextAnnotator {
     return highlightIndex;
   }
 
-  fuzzySearch(prefix, str, postfix, fuzzySearchOptions = {}) {
+  fuzzySearch(prefix, str, postfix, fuzzySearchOptions) {
     const caseSensitive = fuzzySearchOptions.caseSensitive;
     const tokenBased = fuzzySearchOptions.tokenBased;
     let tbThreshold = fuzzySearchOptions.tbThreshold || 0.68; // sentence-based fuzzy search is enabled by default
@@ -409,8 +414,8 @@ class TextAnnotator {
       if (mostPossibleSentence) {
         const result = TextAnnotator.getBestSubstring(mostPossibleSentence.raw, str, sbThreshold, lenRatio, caseSensitive, true);
 
-        if (result.loc) {
-          let index = mostPossibleSentence.index;
+        if (result) {
+          const index = mostPossibleSentence.index;
           highlightIndex = this.highlights.push({
             loc: [index + result.loc[0], index + result.loc[1]]
           }) - 1;
@@ -593,10 +598,10 @@ class TextAnnotator {
       html_boundaries: false,
       sanitize: false,
       allowed_tags: false,
-      preserve_whitespace: true,
-      abbreviations: null
+      preserve_whitespace: true // abbreviations: null,
+
     };
-    return (0, _sbd.default)(text, options).map(raw => {
+    return (0, sbd_1.default)(text, options).map(raw => {
       // future work: can tokenizer return location directly
       const index = text.indexOf(raw);
       return {
@@ -607,7 +612,7 @@ class TextAnnotator {
   }
 
   static getBestSubstring(str, substr, threshold, lenRatio, caseSensitive, skipFirstRun) {
-    let result = {};
+    let result = null;
     let similarity = skipFirstRun ? threshold : TextAnnotator.getSimilarity(str, substr, caseSensitive);
 
     if (similarity >= threshold) {
@@ -731,5 +736,4 @@ class TextAnnotator {
 
 }
 
-var _default = TextAnnotator;
-exports.default = _default;
+exports.default = TextAnnotator;

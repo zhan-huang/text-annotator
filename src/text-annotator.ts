@@ -1,6 +1,11 @@
 import getSentences from './ext/sbd'
 
-const encode = (str) => {
+declare const window: {
+  find: (str: string, caseSensitive?: boolean) => boolean;
+  getSelection: () => Selection
+}
+
+const encode = (str: string): string => {
   return str
     .replace(/&/g, '&amp;')
     .replace(/"/g, '&quot;')
@@ -49,23 +54,84 @@ const blockElements = [
   'video',
 ]
 
+type ConstructorOptions = {
+  content: string,
+  isHTML?: boolean
+}
+
+type DirectSearchOptions = {
+  caseSensitive?: boolean,
+  encode?: boolean,
+  lastHighlightIndex?: number
+}
+
+type FuzzySearchOptions = {
+  caseSensitive?: boolean,
+  tokenBased?: boolean,
+  tbThreshold?: number,
+  sentenceBased?: boolean,
+  sbThreshold?: number,
+  maxLengthDiff?: number,
+  lenRatio?: number,
+  processSentence?: (raw: string) => string
+}
+
+type EagerSearchOptions = {
+  caseSensitive?: boolean,
+  containerId: string,
+  threshold?: number
+}
+
+type SearchOptions = {
+  prefix?: string,
+  postfix?: string,
+  directSearchOptions?: DirectSearchOptions,
+  fuzzySearchOptions?: FuzzySearchOptions,
+  eagerSearchOptions?: EagerSearchOptions,
+  trim?: boolean,
+  caseSensitive?: boolean
+}
+
+type HighlightOptions = {
+  highlightTagName?: string,
+  highlightClass?: string,
+  highlightIdPattern?: string
+}
+
+type Tag = number[]
+
+type Sentence = {
+  raw: string,
+  index: number
+}
+
+type Highlight = {
+  highlighted?: boolean
+  loc: number[]
+}
+
 class TextAnnotator {
-  constructor(options = {}) {
+  content = ''
+  // isHTML is used to reduce the memory used: stripedHTML is empty if isHTML is false
+  isHTML = true
+
+  originalContent = ''
+  // annotatedContent is introduced in order to avoid passing content in the methods
+  annotatedContent = ''
+  // stripedHTML and tagLocations are needed only when the content is HTML
+  stripedHTML = ''
+  tagLocations: Tag[] = []
+  // sentences are used in sentence-based fuzzy search
+  sentences: Sentence[] = []
+  // future work: one highlight can have more than one location because of the potential issue in tag insertion
+  highlights: Highlight[] = []
+
+  constructor(options: ConstructorOptions = {content: ''}) {
     const content = options.content
-    // isHTML is used to reduce the memory used: stripedHTML is empty if isHTML is false
     const isHTML = options.isHTML === undefined || options.isHTML
 
-    // annotatedContent is introduced in order to avoid passing content in the methods
     this.originalContent = this.annotatedContent = content
     this.isHTML = isHTML
-
-    // stripedHTML and tagLocations are needed only when the content is HTML
-    this.stripedHTML = ''
-    this.tagLocations = []
-    // sentences are used in sentence-based fuzzy search
-    this.sentences = []
-    // future work: one highlight can have more than one location because of the potential issue in tag insertion
-    this.highlights = []
 
     if (isHTML) {
       this.stripAndStoreHTMLTags()
@@ -73,7 +139,7 @@ class TextAnnotator {
   }
 
   // the order of directSearch => fuzzy search => eager search is tailored for specific feature, it is now the default way of search but it can be customized via options. More customizations can be done by composing functions
-  search(str, options = {}) {
+  search(str: string, options: SearchOptions = {}): number {
     let prefix = options.prefix || ''
     let postfix = options.postfix || ''
     const directSearchOptions = options.directSearchOptions || {}
@@ -136,10 +202,10 @@ class TextAnnotator {
 
   // experimental feature
   // only support direct search for now
-  searchAll(str, options = {}) {
-    const highlightIndexes = []
+  searchAll(str: string, options: SearchOptions = {}): number[] {
+    const highlightIndexes: number[] = []
 
-    const continueSearch = (str, options) => {
+    const continueSearch = (str: string, options: SearchOptions): void => {
       const highlightIndex = this.search(str, options)
       if (highlightIndex !== -1) {
         highlightIndexes.push(highlightIndex)
@@ -154,7 +220,7 @@ class TextAnnotator {
     return highlightIndexes
   }
 
-  highlight(highlightIndex, options = {}) {
+  highlight(highlightIndex: number, options: HighlightOptions = {}): string {
     const highlightTagName = options.highlightTagName || 'span'
     const highlightClass = options.highlightClass || 'highlight'
     const highlightIdPattern = options.highlightIdPattern || 'highlight-'
@@ -188,14 +254,14 @@ class TextAnnotator {
   }
 
   // experimental feature
-  highlightAll(highlightIndexes, options = {}) {
+  highlightAll(highlightIndexes: number[], options: HighlightOptions = {}): string {
     for (let i = 0; i < highlightIndexes.length; i++) {
       this.annotatedContent = this.highlight(highlightIndexes[i], options)
     }
     return this.annotatedContent
   }
 
-  searchAndHighlight(str, options = {}) {
+  searchAndHighlight(str: string, options: { searchOptions?: SearchOptions, highlightOptions?: HighlightOptions } = {}): {highlightIndex: number, content: string} {
     const highlightIndex = this.search(str, options.searchOptions)
     if (highlightIndex !== -1) {
       return {
@@ -205,7 +271,7 @@ class TextAnnotator {
     }
   }
 
-  unhighlight(highlightIndex, options = {}) {
+  unhighlight(highlightIndex: number, options: HighlightOptions = {}): string {
     const highlightTagName = options.highlightTagName || 'span'
     const highlightClass = options.highlightClass || 'highlight'
     const highlightIdPattern = options.highlightIdPattern || 'highlight-'
@@ -239,13 +305,13 @@ class TextAnnotator {
     return this.annotatedContent
   }
 
-  stripAndStoreHTMLTags() {
-    let tag
+  stripAndStoreHTMLTags(): void {
+    let tag: RegExpMatchArray
     this.stripedHTML = this.originalContent
     const tagRegEx = /<[^>]+>/
     let indexInc = 0
     while ((tag = this.stripedHTML.match(tagRegEx))) {
-      this.stripedHTML = this.stripedHTML.replace(tag, '')
+      this.stripedHTML = this.stripedHTML.replace(tag[0], '')
       const tagLength = tag[0].length
       // tagLocations will be used in adjustLoc
       this.tagLocations.push([tag.index, tagLength, indexInc])
@@ -253,7 +319,7 @@ class TextAnnotator {
     }
   }
 
-  directSearch(prefix, str, postfix, directSearchOptions = {}) {
+  directSearch(prefix: string, str: string, postfix: string, directSearchOptions: DirectSearchOptions = {}): number {
     const caseSensitive = directSearchOptions.caseSensitive
     // experimental option; used for specific feature
     const ifEncode = directSearchOptions.encode
@@ -293,7 +359,7 @@ class TextAnnotator {
     return highlightIndex
   }
 
-  eagerSearch(prefix, str, postfix, eagerSearchOptions = {}) {
+  eagerSearch(prefix: string, str: string, postfix: string, eagerSearchOptions: EagerSearchOptions = {containerId: ''}): number {
     const caseSensitive = eagerSearchOptions.caseSensitive
     const containerId = eagerSearchOptions.containerId
     const threshold = eagerSearchOptions.threshold || 0.74
@@ -318,6 +384,7 @@ class TextAnnotator {
             containerId +
             ' [style="background-color: rgba(255, 255, 255, 0);"]'
         )
+
         if (found) {
           const foundStr = found.innerHTML.replace(/<[^>]*>/g, '')
           const result = TextAnnotator.getBestSubstring(
@@ -325,7 +392,7 @@ class TextAnnotator {
             str,
             threshold
           )
-          if (result.similarity) {
+          if (result) {
             const text = this.isHTML ? this.stripedHTML : this.originalContent
             const index = text.indexOf(foundStr)
             if (index !== -1) {
@@ -347,7 +414,7 @@ class TextAnnotator {
     return highlightIndex
   }
 
-  fuzzySearch(prefix, str, postfix, fuzzySearchOptions = {}) {
+  fuzzySearch(prefix: string, str: string, postfix: string, fuzzySearchOptions: FuzzySearchOptions): number {
     const caseSensitive = fuzzySearchOptions.caseSensitive
 
     const tokenBased = fuzzySearchOptions.tokenBased
@@ -507,8 +574,8 @@ class TextAnnotator {
           caseSensitive,
           true
         )
-        if (result.loc) {
-          let index = mostPossibleSentence.index
+        if (result) {
+          const index = mostPossibleSentence.index
           highlightIndex =
             this.highlights.push({
               loc: [index + result.loc[0], index + result.loc[1]],
@@ -521,7 +588,7 @@ class TextAnnotator {
 
   // future work: further improvement when one annotation binds with more than one highlight
   // includeRequiredTag used in = condition only
-  includeRequiredTag(i, highlightLoc, tag) {
+  includeRequiredTag(i: number, highlightLoc: number[], tag: string): boolean {
     const isCloseTag = tag.startsWith('</')
     const tagName = isCloseTag
       ? tag.split('</')[1].split('>')[0]
@@ -584,10 +651,10 @@ class TextAnnotator {
 
   adjustLoc(
     highlightTagName = 'span',
-    highlightIdPattern,
-    highlightIndex,
-    highlightClass
-  ) {
+    highlightIdPattern: string,
+    highlightIndex: number,
+    highlightClass: string
+  ): number[] {
     const highlightLoc = this.highlights[highlightIndex].loc
     const locInc = [0, 0]
 
@@ -693,25 +760,25 @@ class TextAnnotator {
 
   static createOpenTag(
     highlightTagName = 'span',
-    highlightIdPattern,
-    highlightIndex,
-    highlightClass
-  ) {
+    highlightIdPattern: string,
+    highlightIndex: number,
+    highlightClass: string
+  ): string {
     return `<${highlightTagName} id="${
       highlightIdPattern + highlightIndex
     }" class="${highlightClass}">`
   }
 
-  static createCloseTag(highlightTagName = 'span') {
+  static createCloseTag(highlightTagName = 'span'): string {
     return `</${highlightTagName}>`
   }
 
   static getOpenTagLength(
     highlightTagName = 'span',
-    highlightIdPattern,
-    highlightIndex,
-    highlightClass
-  ) {
+    highlightIdPattern: string,
+    highlightIndex: number,
+    highlightClass: string
+  ): number {
     return TextAnnotator.createOpenTag(
       highlightTagName,
       highlightIdPattern,
@@ -720,11 +787,15 @@ class TextAnnotator {
     ).length
   }
 
-  static getCloseTagLength(highlightTagName = 'span') {
+  static getCloseTagLength(highlightTagName = 'span'): number {
     return TextAnnotator.createCloseTag(highlightTagName).length
   }
 
-  static trim(prefix, str, postfix) {
+  static trim(prefix: string, str: string, postfix: string): {
+    prefix: string,
+    str: string,
+    postfix: string
+  } {
     prefix = prefix.replace(/^\s+/, '')
     postfix = postfix.replace(/\s+$/, '')
     if (!prefix) {
@@ -737,20 +808,20 @@ class TextAnnotator {
     return { prefix, str, postfix }
   }
 
-  static insert(str1, str2, index) {
+  static insert(str1: string, str2: string, index: number): string {
     return str1.slice(0, index) + str2 + str1.slice(index)
   }
 
-  static sentenize(text) {
+  static sentenize(text: string): Sentence[] {
     const options = {
       newline_boundaries: false,
       html_boundaries: false,
       sanitize: false,
       allowed_tags: false,
       preserve_whitespace: true,
-      abbreviations: null,
+      // abbreviations: null,
     }
-    return getSentences(text, options).map((raw) => {
+    return getSentences(text, options).map((raw: string) => {
       // future work: can tokenizer return location directly
       const index = text.indexOf(raw)
       return { raw, index }
@@ -758,14 +829,17 @@ class TextAnnotator {
   }
 
   static getBestSubstring(
-    str,
-    substr,
-    threshold,
-    lenRatio,
-    caseSensitive,
-    skipFirstRun
-  ) {
-    let result = {}
+    str: string,
+    substr: string,
+    threshold?: number,
+    lenRatio?: number,
+    caseSensitive?: boolean,
+    skipFirstRun?: boolean
+  ): {
+    similarity: number | null,
+    loc: number[]
+  } | null {
+    let result = null
 
     let similarity = skipFirstRun
       ? threshold
@@ -814,7 +888,7 @@ class TextAnnotator {
     return result
   }
 
-  static getSimilarity(str1, str2, caseSensitive) {
+  static getSimilarity(str1: string, str2: string, caseSensitive?: boolean): number {
     if (!caseSensitive) {
       str1 = str1.toLowerCase()
       str2 = str2.toLowerCase()
@@ -825,8 +899,8 @@ class TextAnnotator {
   }
 
   // copy from the code in https://www.npmjs.com/package/longest-common-subsequence
-  static lcsLength(firstSequence, secondSequence, caseSensitive) {
-    function createArray(dimension) {
+  static lcsLength(firstSequence: string, secondSequence: string, caseSensitive?: boolean): number {
+    function createArray(dimension: number): Array<Array<number>> {
       const array = []
 
       for (let i = 0; i < dimension; i++) {
@@ -855,8 +929,8 @@ class TextAnnotator {
     const secondStringLength = secondString.length
     const lcsMatrix = createArray(secondStringLength + 1)
 
-    let i
-    let j
+    let i: number
+    let j: number
     for (i = 0; i <= firstStringLength; i++) {
       lcsMatrix[0][i] = 0
     }
