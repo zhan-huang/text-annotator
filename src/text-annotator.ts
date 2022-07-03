@@ -1,3 +1,4 @@
+import type { ConstructorOptions, DirectSearchOptions, FuzzySearchOptions, EagerSearchOptions, SearchOptions, HighlightOptions, Tag, Sentence, Location, Highlight } from './@types'
 import getSentences from './ext/sbd'
 
 declare const window: {
@@ -53,64 +54,6 @@ const blockElements = [
   'ul',
   'video',
 ]
-
-type ConstructorOptions = {
-  content: string,
-  isHTML?: boolean
-}
-
-type DirectSearchOptions = {
-  caseSensitive?: boolean,
-  encode?: boolean,
-  lastHighlightIndex?: number
-}
-
-type FuzzySearchOptions = {
-  caseSensitive?: boolean,
-  tokenBased?: boolean,
-  tbThreshold?: number,
-  sentenceBased?: boolean,
-  sbThreshold?: number,
-  maxLengthDiff?: number,
-  lenRatio?: number,
-  processSentence?: (raw: string) => string
-}
-
-type EagerSearchOptions = {
-  caseSensitive?: boolean,
-  containerId: string,
-  threshold?: number
-}
-
-type SearchOptions = {
-  prefix?: string,
-  postfix?: string,
-  directSearchOptions?: DirectSearchOptions,
-  fuzzySearchOptions?: FuzzySearchOptions,
-  eagerSearchOptions?: EagerSearchOptions,
-  trim?: boolean,
-  caseSensitive?: boolean
-}
-
-type HighlightOptions = {
-  highlightTagName?: string,
-  highlightClass?: string,
-  highlightIdPattern?: string
-}
-
-type Tag = [number, number, number]
-
-type Sentence = {
-  raw: string,
-  index: number
-}
-
-type Location = [number, number]
-
-type Highlight = {
-  highlighted?: boolean
-  loc: Location
-}
 
 class TextAnnotator {
   content = ''
