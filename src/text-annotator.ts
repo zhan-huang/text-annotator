@@ -98,16 +98,18 @@ type HighlightOptions = {
   highlightIdPattern?: string
 }
 
-type Tag = number[]
+type Tag = [number, number, number]
 
 type Sentence = {
   raw: string,
   index: number
 }
 
+type Location = [number, number]
+
 type Highlight = {
   highlighted?: boolean
-  loc: number[]
+  loc: Location
 }
 
 class TextAnnotator {
@@ -345,13 +347,13 @@ class TextAnnotator {
       const encodedStrWithFixes = encode(strWithFixes)
       const index = text.indexOf(encodedStrWithFixes, offset)
       if (index !== -1) {
-        const loc = []
+        const loc: Location = [0, 0]
         loc[0] = index + encode(prefix).length
         loc[1] = loc[0] + encode(str).length
         highlightIndex = this.highlights.push({ loc }) - 1
       }
     } else if (index !== -1) {
-      const loc = []
+      const loc: Location = [0, 0]
       loc[0] = index + prefix.length
       loc[1] = loc[0] + str.length
       highlightIndex = this.highlights.push({ loc }) - 1
@@ -588,7 +590,7 @@ class TextAnnotator {
 
   // future work: further improvement when one annotation binds with more than one highlight
   // includeRequiredTag used in = condition only
-  includeRequiredTag(i: number, highlightLoc: number[], tag: string): boolean {
+  includeRequiredTag(i: number, highlightLoc: [number, number], tag: string): boolean {
     const isCloseTag = tag.startsWith('</')
     const tagName = isCloseTag
       ? tag.split('</')[1].split('>')[0]
@@ -654,7 +656,7 @@ class TextAnnotator {
     highlightIdPattern: string,
     highlightIndex: number,
     highlightClass: string
-  ): number[] {
+  ): Location {
     const highlightLoc = this.highlights[highlightIndex].loc
     const locInc = [0, 0]
 
@@ -837,7 +839,7 @@ class TextAnnotator {
     skipFirstRun?: boolean
   ): {
     similarity: number | null,
-    loc: number[]
+    loc: Location
   } | null {
     let result = null
 
@@ -878,7 +880,7 @@ class TextAnnotator {
 
       // step 2: return the best substr and its loc if found and if it meets the threshold and the length ratio
       if (!lenRatio || bestSubstr.length / substr.length <= lenRatio) {
-        const loc = []
+        const loc: Location = [0, 0]
         loc[0] = str.indexOf(bestSubstr)
         loc[1] = loc[0] + bestSubstr.length
         result = { similarity, loc }
@@ -902,11 +904,9 @@ class TextAnnotator {
   static lcsLength(firstSequence: string, secondSequence: string, caseSensitive?: boolean): number {
     function createArray(dimension: number): Array<Array<number>> {
       const array = []
-
       for (let i = 0; i < dimension; i++) {
         array[i] = []
       }
-
       return array
     }
 

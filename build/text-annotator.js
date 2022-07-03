@@ -206,7 +206,7 @@ class TextAnnotator {
       const index = text.indexOf(encodedStrWithFixes, offset);
 
       if (index !== -1) {
-        const loc = [];
+        const loc = [0, 0];
         loc[0] = index + encode(prefix).length;
         loc[1] = loc[0] + encode(str).length;
         highlightIndex = this.highlights.push({
@@ -214,7 +214,7 @@ class TextAnnotator {
         }) - 1;
       }
     } else if (index !== -1) {
-      const loc = [];
+      const loc = [0, 0];
       loc[0] = index + prefix.length;
       loc[1] = loc[0] + str.length;
       highlightIndex = this.highlights.push({
@@ -644,7 +644,7 @@ class TextAnnotator {
       const bestSubstr = words.join(' '); // step 2: return the best substr and its loc if found and if it meets the threshold and the length ratio
 
       if (!lenRatio || bestSubstr.length / substr.length <= lenRatio) {
-        const loc = [];
+        const loc = [0, 0];
         loc[0] = str.indexOf(bestSubstr);
         loc[1] = loc[0] + bestSubstr.length;
         result = {
