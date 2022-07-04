@@ -1,8 +1,19 @@
-import type { ConstructorOptions, DirectSearchOptions, FuzzySearchOptions, EagerSearchOptions, SearchOptions, HighlightOptions, Tag, Sentence, Location, Highlight } from './@types'
+import type {
+  ConstructorOptions,
+  DirectSearchOptions,
+  FuzzySearchOptions,
+  EagerSearchOptions,
+  SearchOptions,
+  HighlightOptions,
+  Tag,
+  Sentence,
+  Location,
+  Highlight,
+} from './@types'
 import getSentences from './ext/sbd'
 
 declare const window: {
-  find: (str: string, caseSensitive?: boolean) => boolean;
+  find: (str: string, caseSensitive?: boolean) => boolean
   getSelection: () => Selection
 }
 
@@ -71,7 +82,7 @@ class TextAnnotator {
   // future work: one highlight can have more than one location because of the potential issue in tag insertion
   highlights: Highlight[] = []
 
-  constructor(options: ConstructorOptions = {content: ''}) {
+  constructor(options: ConstructorOptions = { content: '' }) {
     const content = options.content
     const isHTML = options.isHTML === undefined || options.isHTML
 
@@ -199,14 +210,23 @@ class TextAnnotator {
   }
 
   // experimental feature
-  highlightAll(highlightIndexes: number[], options: HighlightOptions = {}): string {
+  highlightAll(
+    highlightIndexes: number[],
+    options: HighlightOptions = {}
+  ): string {
     for (let i = 0; i < highlightIndexes.length; i++) {
       this.annotatedContent = this.highlight(highlightIndexes[i], options)
     }
     return this.annotatedContent
   }
 
-  searchAndHighlight(str: string, options: { searchOptions?: SearchOptions, highlightOptions?: HighlightOptions } = {}): {highlightIndex: number, content: string} {
+  searchAndHighlight(
+    str: string,
+    options: {
+      searchOptions?: SearchOptions
+      highlightOptions?: HighlightOptions
+    } = {}
+  ): { highlightIndex: number; content: string } {
     const highlightIndex = this.search(str, options.searchOptions)
     if (highlightIndex !== -1) {
       return {
@@ -264,7 +284,12 @@ class TextAnnotator {
     }
   }
 
-  directSearch(prefix: string, str: string, postfix: string, directSearchOptions: DirectSearchOptions = {}): number {
+  directSearch(
+    prefix: string,
+    str: string,
+    postfix: string,
+    directSearchOptions: DirectSearchOptions = {}
+  ): number {
     const caseSensitive = directSearchOptions.caseSensitive
     // experimental option; used for specific feature
     const ifEncode = directSearchOptions.encode
@@ -304,7 +329,12 @@ class TextAnnotator {
     return highlightIndex
   }
 
-  eagerSearch(prefix: string, str: string, postfix: string, eagerSearchOptions: EagerSearchOptions = {containerId: ''}): number {
+  eagerSearch(
+    prefix: string,
+    str: string,
+    postfix: string,
+    eagerSearchOptions: EagerSearchOptions = { containerId: '' }
+  ): number {
     const caseSensitive = eagerSearchOptions.caseSensitive
     const containerId = eagerSearchOptions.containerId
     const threshold = eagerSearchOptions.threshold || 0.74
@@ -359,7 +389,12 @@ class TextAnnotator {
     return highlightIndex
   }
 
-  fuzzySearch(prefix: string, str: string, postfix: string, fuzzySearchOptions: FuzzySearchOptions): number {
+  fuzzySearch(
+    prefix: string,
+    str: string,
+    postfix: string,
+    fuzzySearchOptions: FuzzySearchOptions
+  ): number {
     const caseSensitive = fuzzySearchOptions.caseSensitive
 
     const tokenBased = fuzzySearchOptions.tokenBased
@@ -533,7 +568,11 @@ class TextAnnotator {
 
   // future work: further improvement when one annotation binds with more than one highlight
   // includeRequiredTag used in = condition only
-  includeRequiredTag(i: number, highlightLoc: [number, number], tag: string): boolean {
+  includeRequiredTag(
+    i: number,
+    highlightLoc: [number, number],
+    tag: string
+  ): boolean {
     const isCloseTag = tag.startsWith('</')
     const tagName = isCloseTag
       ? tag.split('</')[1].split('>')[0]
@@ -736,9 +775,13 @@ class TextAnnotator {
     return TextAnnotator.createCloseTag(highlightTagName).length
   }
 
-  static trim(prefix: string, str: string, postfix: string): {
+  static trim(
     prefix: string,
     str: string,
+    postfix: string
+  ): {
+    prefix: string
+    str: string
     postfix: string
   } {
     prefix = prefix.replace(/^\s+/, '')
@@ -781,7 +824,7 @@ class TextAnnotator {
     caseSensitive?: boolean,
     skipFirstRun?: boolean
   ): {
-    similarity: number | null,
+    similarity: number | null
     loc: Location
   } | null {
     let result = null
@@ -833,7 +876,11 @@ class TextAnnotator {
     return result
   }
 
-  static getSimilarity(str1: string, str2: string, caseSensitive?: boolean): number {
+  static getSimilarity(
+    str1: string,
+    str2: string,
+    caseSensitive?: boolean
+  ): number {
     if (!caseSensitive) {
       str1 = str1.toLowerCase()
       str2 = str2.toLowerCase()
@@ -844,7 +891,11 @@ class TextAnnotator {
   }
 
   // copy from the code in https://www.npmjs.com/package/longest-common-subsequence
-  static lcsLength(firstSequence: string, secondSequence: string, caseSensitive?: boolean): number {
+  static lcsLength(
+    firstSequence: string,
+    secondSequence: string,
+    caseSensitive?: boolean
+  ): number {
     function createArray(dimension: number): Array<Array<number>> {
       const array = []
       for (let i = 0; i < dimension; i++) {
