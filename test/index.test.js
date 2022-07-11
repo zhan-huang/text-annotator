@@ -1,4 +1,4 @@
-import TextAnnotator from '../dist/text-annotator'
+import TextAnnotator from '../build/text-annotator'
 
 const content =
   '"I am <b><i>Zhan Huang</i></b>, a <b>frontend developer</b> in EMBL-EBI. I like food and sports. My favourite food is udon noodles." - Zhan Huang'
